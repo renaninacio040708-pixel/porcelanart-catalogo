@@ -27,6 +27,16 @@ export const produtos: Produto[] = [
     fotos: [4, 10, 11],
   },
   {
+    slug: 'conjunto-beija-flor-tulipas',
+    nome: 'Conjunto Canecas e Pratos Coloridos',
+    categoria: 'Canecas e xícaras',
+    resumo: 'Canecas com inicial e pratos em degradê com beija-flores e tulipas.',
+    descricao:
+      'Canecas nos tons verde e pink com a inicial em dourado, acompanhadas de pratos em degradê pintados com beija-flores, orquídeas, tulipas e renda ao fundo. Um conjunto cheio de cor para presentear.',
+    detalhes: ['Inicial dourada personalizada', 'Pratos em degradê', 'Suporte de acrílico para expor'],
+    fotos: [21],
+  },
+  {
     slug: 'gatinho-floral',
     nome: 'Xícara Gatinho Floral',
     categoria: 'Canecas e xícaras',
