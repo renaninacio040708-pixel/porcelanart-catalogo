@@ -158,7 +158,7 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
           <p className="rotulo text-[11px] text-tinta-suave">{p.categoria}</p>
           <h3 className="titulo mt-2 text-[30px]">{p.nome}</h3>
           <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{p.resumo}</p>
-          <span className="rotulo mt-4 inline-block border-b border-indigo pb-1 text-indigo">Ver peça →</span>
+          <span className="rotulo mt-4 inline-block border-b border-indigo pb-1 text-indigo">Ver detalhes →</span>
         </div>
       </Link>
     </Reveal>
@@ -175,7 +175,7 @@ function Colecao() {
       <div className="relative mx-auto max-w-[1200px] px-5 pb-16 pt-6 md:pb-24">
         <Reveal className="text-center">
           <h2 className="titulo !text-white text-[56px] md:text-[88px]">A coleção</h2>
-          <p className="script !text-white mt-2 text-4xl">toque em uma peça para conhecer de perto</p>
+          <p className="script !text-white mt-2 text-4xl">tudo é feito sob encomenda, do seu jeito</p>
         </Reveal>
         <div className="mt-10 flex flex-wrap justify-center gap-3" role="group" aria-label="Filtrar por tipo">
           {categorias.map((c) => (
@@ -204,7 +204,7 @@ function Colecao() {
 
 function Passos() {
   const passos = [
-    ['Escolha a peça', 'Navegue pela coleção e toque na que combina com você — ou com quem vai ganhar o presente.'],
+    ['Escolha a peça', 'Veja os tipos de peça e toque no que combina com você — ou com quem vai ganhar o presente.'],
     ['Peça o orçamento', 'O botão “Encomendar” abre o WhatsApp com a mensagem pronta. Conte cores, inicial e prazo.'],
     ['Pintada só para você', 'Combinado o pedido, a peça é pintada à mão e finalizada com o acabamento escolhido.'],
   ]
@@ -341,7 +341,7 @@ function Peca() {
             />
           </div>
           {p.fotos.length > 1 && (
-            <div className="relative mt-4 flex gap-3">
+            <div className="relative mt-4 flex flex-wrap gap-3">
               {p.fotos.map((f, i) => (
                 <button
                   key={f}
@@ -373,6 +373,7 @@ function Peca() {
             <ZapIcon /> Encomendar pelo WhatsApp
           </a>
           <p className="mt-4 text-sm text-tinta-suave">Valores sob orçamento — cada peça é feita sob medida para você.</p>
+          <p className="mt-2 text-sm text-tinta-suave">As fotos são exemplos de peças já feitas; a sua pode ter outras cores, temas e inicial.</p>
         </div>
       </section>
       <section className="bg-white py-16">
