@@ -105,4 +105,4 @@ export const achar = (slug?: string) => produtos.find((p) => p.slug === slug)
 
 export const linkZap = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`
 export const msgProduto = (nome: string) =>
-  `Olá! Me interessei por "${nome}" e gostaria de solicitar um orçamento.`
+  `Olá! Me interessei por "${nome}" e quero personalizar a minha.`

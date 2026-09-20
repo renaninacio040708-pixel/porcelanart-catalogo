@@ -15,7 +15,7 @@ import {
 } from './data'
 
 const ease = [0.22, 1, 0.36, 1] as const
-const MSG_GERAL = 'Olá! Vim pelo site da PorcelanArt e gostaria de solicitar um orçamento.'
+const MSG_GERAL = 'Olá! Vim pelo site da PorcelanArt e quero personalizar a minha peça.'
 
 function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
@@ -131,14 +131,14 @@ function Hero() {
           </h1>
           <p className="script mt-4 text-4xl sm:text-5xl">cada peça, uma pequena história</p>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
-            Canecas, xícaras, pratos e kits com flores, passarinhos e o seu toque em dourado. Tudo feito sob encomenda — peça seu orçamento pelo WhatsApp.
+            Canecas, xícaras, pratos e kits com flores, passarinhos e o seu toque em dourado. Tudo feito sob encomenda — chame no WhatsApp e monte a sua.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <a href="#colecao" className="btn btn-cheio">
               Ver a coleção
             </a>
             <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-vazado">
-              Pedir orçamento <span aria-hidden="true">→</span>
+              Quero personalizar a minha <span aria-hidden="true">→</span>
             </a>
           </div>
           <a
@@ -235,7 +235,7 @@ function Colecao() {
 function Passos() {
   const passos = [
     ['Escolha a peça', 'Veja os tipos de peça e toque no que combina com você — ou com quem vai ganhar o presente.'],
-    ['Peça o orçamento', 'O botão “Encomendar” abre o WhatsApp com a mensagem pronta. Conte cores, inicial e prazo.'],
+    ['Converse com a gente', 'O botão “Quero personalizar a minha” abre o WhatsApp com a mensagem pronta. Conte cores, tema, inicial e prazo.'],
     ['Pintada só para você', 'Combinado o pedido, a peça é pintada à mão e finalizada com o acabamento escolhido.'],
   ]
   return (
@@ -400,9 +400,9 @@ function Peca() {
             ))}
           </ul>
           <a href={linkZap(msgProduto(p.nome))} target="_blank" rel="noreferrer" className="btn btn-cheio mt-10 w-full sm:w-auto">
-            <ZapIcon /> Encomendar pelo WhatsApp
+            <ZapIcon /> Quero personalizar a minha
           </a>
-          <p className="mt-4 text-sm text-tinta-suave">Valores sob orçamento — cada peça é feita sob medida para você.</p>
+          <p className="mt-4 text-sm text-tinta-suave">Os valores são combinados na conversa — cada peça é feita sob medida para você.</p>
           <p className="mt-2 text-sm text-tinta-suave">As fotos são exemplos de peças já feitas; a sua pode ter outras cores, temas e inicial.</p>
         </div>
       </section>
