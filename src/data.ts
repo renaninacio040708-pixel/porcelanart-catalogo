@@ -24,19 +24,9 @@ export const produtos: Produto[] = [
     categoria: 'Xícaras e canecas',
     resumo: 'Xícara e pires pintados à mão, com a sua inicial em ouro.',
     descricao:
-      'Xícara com pires pintada à mão do jeito que você imaginar: escolha a inicial em ouro, as cores e o tema — flores, passarinhos, beija-flores e muito mais. As fotos são exemplos de peças já feitas.',
-    detalhes: ['Inicial em ouro', 'Você escolhe cores e tema', 'Pires combinando', 'Borda dourada'],
-    fotos: [24, 22, 26, 27, 23, 25],
-  },
-  {
-    slug: 'conjunto-personalizado',
-    nome: 'Conjunto Xícara, Pires e Prato Personalizados',
-    categoria: 'Xícaras e canecas',
-    resumo: 'Xícaras com prato ou bandeja combinando, para presentear.',
-    descricao:
-      'Um conjunto pintado sob medida: xícaras ou canecas com inicial em ouro acompanhadas de pratos ou bandeja na mesma arte. Ótimo para casais, madrinhas, casamentos e datas especiais.',
-    detalhes: ['Xícaras, pires e prato/bandeja na mesma arte', 'Inicial em ouro', 'Ideal para presente'],
-    fotos: [21, 4, 10, 11, 3],
+      'Xícara com pires (prato) pintada à mão do jeito que você imaginar, em dupla ou avulsa: escolha a inicial em ouro, as cores e o tema — flores, passarinhos, beija-flores e muito mais. As fotos são exemplos de peças já feitas.',
+    detalhes: ['Inicial em ouro', 'Você escolhe cores e tema', 'Pires (prato) combinando', 'Borda dourada'],
+    fotos: [21, 24, 22, 26, 27, 23, 25],
   },
   {
     slug: 'caneca-personalizada',
