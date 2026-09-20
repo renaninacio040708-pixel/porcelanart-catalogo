@@ -154,11 +154,11 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
             className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         </div>
-        <div className="p-5">
-          <p className="rotulo text-[11px] text-tinta-suave">{p.categoria}</p>
-          <h3 className="titulo mt-2 text-[30px]">{p.nome}</h3>
-          <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{p.resumo}</p>
-          <span className="rotulo mt-4 inline-block border-b border-indigo pb-1 text-indigo">Ver detalhes →</span>
+        <div className="p-3 sm:p-5">
+          <p className="rotulo text-[9px] tracking-[0.14em] text-tinta-suave sm:text-[11px] sm:tracking-[0.22em]">{p.categoria}</p>
+          <h3 className="titulo mt-1.5 text-[22px] leading-none sm:mt-2 sm:text-[30px]">{p.nome}</h3>
+          <p className="mt-2 hidden text-[15px] leading-relaxed text-tinta-suave sm:block">{p.resumo}</p>
+          <span className="rotulo mt-3 inline-block border-b border-indigo pb-0.5 text-[10px] text-indigo sm:mt-4 sm:pb-1 sm:text-[12px]">Ver detalhes →</span>
         </div>
       </Link>
     </Reveal>
@@ -191,7 +191,7 @@ function Colecao() {
             </button>
           ))}
         </div>
-        <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3">
           {lista.map((p, i) => (
             <Card key={p.slug} p={p} i={i} sobreLaranja />
           ))}
@@ -379,7 +379,7 @@ function Peca() {
       <section className="bg-white py-16">
         <div className="mx-auto max-w-[1200px] px-5">
           <h2 className="titulo text-[44px]">Você também pode gostar</h2>
-          <div className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
             {relacionados.map((r, i) => (
               <Card key={r.slug} p={r} i={i} />
             ))}
