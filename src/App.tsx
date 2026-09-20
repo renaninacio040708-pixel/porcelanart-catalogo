@@ -341,7 +341,7 @@ function Sobre() {
           <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Uma flor, uma pena, um filete de ouro. Tudo pintado à mão</h2>
           <p className="script mt-3 text-4xl">nenhuma peça sai igual à outra</p>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
-            No ateliê PorcelanArt cada flor, pena e filete dourado é pintado à mão. Presentes de aniversário, casamento, chá de bebê, lembrancinhas ou um mimo para si: conte a ideia e a gente pinta.
+            No ateliê PorcelanArt, nenhuma peça é feita em série. Presentes de aniversário, casamento, chá de bebê, lembrancinhas ou um mimo para si: conte a ideia e a gente pinta.
           </p>
           <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="btn btn-vazado mt-8">
             Ver mais no Instagram
