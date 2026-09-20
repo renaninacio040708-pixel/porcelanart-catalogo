@@ -124,10 +124,15 @@ function InstaIcon({ size = 20 }: { size?: number }) {
 function Header() {
   const [aberto, setAberto] = useState(false)
   const loc = useLocation()
+  const botaoMenu = useRef<HTMLButtonElement>(null)
   useEffect(() => setAberto(false), [loc.pathname, loc.hash])
   useEffect(() => {
     if (!aberto) return
-    const fecha = (e: KeyboardEvent) => e.key === 'Escape' && setAberto(false)
+    const fecha = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setAberto(false)
+      botaoMenu.current?.focus()
+    }
     window.addEventListener('keydown', fecha)
     return () => window.removeEventListener('keydown', fecha)
   }, [aberto])
@@ -148,16 +153,16 @@ function Header() {
               {l.t}
             </Link>
           ))}
-          <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="rotulo inline-flex items-center gap-2 text-indigo transition-opacity hover:opacity-60">
+          <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" title="Abre em nova aba" rel="noreferrer" className="rotulo inline-flex items-center gap-2 text-indigo transition-opacity hover:opacity-60">
             <InstaIcon size={18} /> Instagram
           </a>
-          <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-cheio !py-3">
+          <a href={linkZap(MSG_GERAL)} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-cheio !py-3">
             Fale conosco
           </a>
         </nav>
         <a
           href={`https://instagram.com/${INSTAGRAM}`}
-          target="_blank"
+          target="_blank" title="Abre em nova aba"
           rel="noreferrer"
           aria-label="Instagram da PorcelanArt"
           className="ml-auto mr-1 grid h-12 w-12 place-items-center text-indigo md:hidden"
@@ -168,6 +173,7 @@ function Header() {
           className="grid h-12 w-12 place-items-center md:hidden"
           aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={aberto}
+          ref={botaoMenu}
           aria-controls="menu-movel"
           onClick={() => setAberto((v) => !v)}
         >
@@ -185,7 +191,7 @@ function Header() {
               {l.t}
             </Link>
           ))}
-          <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-cheio mt-6 w-full">
+          <a href={linkZap(MSG_GERAL)} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-cheio mt-6 w-full">
             <ZapIcon /> Chamar no WhatsApp
           </a>
         </nav>
@@ -215,13 +221,13 @@ function Hero() {
             <a href="#colecao" className="btn btn-cheio">
               Ver a coleção
             </a>
-            <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-vazado">
+            <a href={linkZap(MSG_GERAL)} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-vazado">
               Quero personalizar a minha
             </a>
           </div>
           <a
             href={`https://instagram.com/${INSTAGRAM}`}
-            target="_blank"
+            target="_blank" title="Abre em nova aba"
             rel="noreferrer"
             className="rotulo mt-6 inline-flex min-h-[44px] items-center gap-2.5 text-indigo underline decoration-indigo/40 underline-offset-8 transition-opacity hover:opacity-70"
           >
@@ -380,7 +386,7 @@ function Sobre() {
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
             No ateliê PorcelanArt, nenhuma peça é feita em série. Presentes de aniversário, casamento, chá de bebê, lembrancinhas ou um mimo para si: conte a ideia e a gente pinta.
           </p>
-          <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="btn btn-vazado mt-8">
+          <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-vazado mt-8">
             Ver mais no Instagram
           </a>
         </Reveal>
@@ -398,13 +404,13 @@ function Rodape() {
         <p className="script !text-mel text-3xl">porcelana pintada à mão, sob encomenda</p>
         <a
           href={linkZap(MSG_GERAL)}
-          target="_blank"
+          target="_blank" title="Abre em nova aba"
           rel="noreferrer"
           className="btn mt-2 bg-white !text-indigo transition-opacity hover:opacity-85"
         >
           <ZapIcon /> Chamar no WhatsApp
         </a>
-        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="rotulo inline-flex min-h-[44px] items-center gap-2.5 text-white underline decoration-white/40 underline-offset-8 hover:decoration-white">
+        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" title="Abre em nova aba" rel="noreferrer" className="rotulo inline-flex min-h-[44px] items-center gap-2.5 text-white underline decoration-white/40 underline-offset-8 hover:decoration-white">
           <InstaIcon /> @{INSTAGRAM}
         </a>
         <p className="mt-6 text-xs text-white/70">© {new Date().getFullYear()} PorcelanArt · Todas as peças são pintadas à mão.</p>
@@ -525,7 +531,7 @@ function Peca() {
             )}
           </div>
           {p.fotos.length > 1 && (
-            <div ref={faixa} className="sem-barra relative mt-4 flex gap-3 overflow-x-auto pb-1">
+            <div ref={faixa} role="group" aria-label="Miniaturas das fotos" className="sem-barra relative mt-4 flex gap-3 overflow-x-auto pb-1">
               {p.fotos.map((f, i) => (
                 <button
                   key={f}
@@ -554,7 +560,7 @@ function Peca() {
               </li>
             ))}
           </ul>
-          <a href={linkZap(msgProduto(p.nome))} target="_blank" rel="noreferrer" className="btn btn-cheio mt-10 w-full sm:w-auto">
+          <a href={linkZap(msgProduto(p.nome))} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-cheio mt-10 w-full sm:w-auto">
             <ZapIcon /> Quero personalizar a minha
           </a>
           <p className="mt-4 text-sm text-tinta-suave">Os valores são combinados na conversa — cada peça é feita sob medida para você.</p>
