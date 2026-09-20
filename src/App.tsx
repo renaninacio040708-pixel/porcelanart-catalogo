@@ -7,6 +7,7 @@ import {
   achar,
   categorias,
   foto,
+  fotoP,
   linkZap,
   msgProduto,
   produtos,
@@ -86,6 +87,22 @@ function ScrollProgress() {
   )
 }
 
+/** Título, descrição e canonical por rota (SPA). noindex para páginas que não existem. */
+function usePagina(title: string, desc: string, path: string, noindex = false) {
+  useEffect(() => {
+    document.title = title
+    const base = 'https://porcelanart-catalogo.vercel.app'
+    const q = (sel: string) => document.head.querySelector<HTMLElement>(sel)
+    q('meta[name="description"]')?.setAttribute('content', desc)
+    q('meta[property="og:title"]')?.setAttribute('content', title)
+    q('meta[property="og:description"]')?.setAttribute('content', desc)
+    q('meta[property="og:url"]')?.setAttribute('content', base + path)
+    q('link[rel="canonical"]')?.setAttribute('href', base + path)
+    const robots = q('meta[name="robots"]') ?? document.head.appendChild(Object.assign(document.createElement('meta'), { name: 'robots' }))
+    robots.setAttribute('content', noindex ? 'noindex' : 'index,follow')
+  }, [title, desc, path, noindex])
+}
+
 function ZapIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -108,6 +125,12 @@ function Header() {
   const [aberto, setAberto] = useState(false)
   const loc = useLocation()
   useEffect(() => setAberto(false), [loc.pathname, loc.hash])
+  useEffect(() => {
+    if (!aberto) return
+    const fecha = (e: KeyboardEvent) => e.key === 'Escape' && setAberto(false)
+    window.addEventListener('keydown', fecha)
+    return () => window.removeEventListener('keydown', fecha)
+  }, [aberto])
   const links = [
     { to: '/#colecao', t: 'A coleção' },
     { to: '/#encomenda', t: 'Como encomendar' },
@@ -145,6 +168,7 @@ function Header() {
           className="grid h-12 w-12 place-items-center md:hidden"
           aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={aberto}
+          aria-controls="menu-movel"
           onClick={() => setAberto((v) => !v)}
         >
           <span className="relative block h-3.5 w-6">
@@ -155,7 +179,7 @@ function Header() {
         </button>
       </div>
       {aberto && (
-        <nav className="border-t border-black/10 bg-papel px-5 pb-6 md:hidden" aria-label="Menu móvel">
+        <nav id="menu-movel" className="border-t border-black/10 bg-papel px-5 pb-6 md:hidden" aria-label="Menu móvel">
           {links.map((l) => (
             <Link key={l.to} to={l.to} className="titulo block border-b border-black/10 py-4 text-3xl">
               {l.t}
@@ -173,8 +197,8 @@ function Header() {
 function Hero() {
   return (
     <section className="relative overflow-hidden bg-papel">
-      <Drift hero className="pointer-events-none absolute -left-8 top-24 hidden lg:block" from={-40} to={70} rot={[-22, 4]}><Sprig className="h-72 opacity-80" /></Drift>
-      <Drift hero className="pointer-events-none absolute -right-4 bottom-24 hidden lg:block" from={50} to={-60} rot={[-6, 20]}><Margarida className="h-64 opacity-70" color="#6aa8dc" /></Drift>
+      <Drift hero className="pointer-events-none absolute -left-8 top-24 hidden lg:block" from={-40} to={70} rot={[-8, 1]}><Sprig className="h-72 opacity-80" /></Drift>
+      <Drift hero className="pointer-events-none absolute -right-4 bottom-24 hidden lg:block" from={50} to={-60} rot={[-2, 7]}><Margarida className="h-64 opacity-70" color="#6aa8dc" /></Drift>
       <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-5 pb-10 pt-8 md:grid-cols-[1fr_1fr] md:pb-16 md:pt-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease }}>
           <h1 className="titulo text-[clamp(3.5rem,11vw,6rem)]">
@@ -206,16 +230,16 @@ function Hero() {
         </motion.div>
 
         <motion.div
-          className="relative mx-auto w-full max-w-[460px] py-6 md:max-w-none"
+          className="relative order-first mx-auto w-full max-w-[280px] py-6 md:order-none md:max-w-none"
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease, delay: 0.1 }}
         >
-          <Drift hero className="absolute -right-6 -top-4 w-[86%]" from={-10} to={50} rot={[-4, 6]}><Blob fill="#ffc400" variante={0} className="block w-full" /></Drift>
-          <Drift hero className="absolute -bottom-6 -left-6 w-[60%]" from={20} to={-40} rot={[6, -6]}><Blob fill="#a2d3a6" variante={1} className="block w-full" /></Drift>
+          <Drift hero className="absolute -right-6 -top-4 w-[86%]" from={-10} to={50} rot={[-1, 2]}><Blob fill="#ffc400" variante={0} className="block w-full" /></Drift>
+          <Drift hero className="absolute -bottom-6 -left-6 w-[60%]" from={20} to={-40} rot={[2, -2]}><Blob fill="#a2d3a6" variante={1} className="block w-full" /></Drift>
           <Drift hero className="relative mx-auto w-[78%] md:ml-auto md:mr-6" from={0} to={-40}>
             <div className="overflow-hidden rounded-lg bg-white shadow-cartao">
-              <img src={foto(4)} alt="Canecas pintadas com passarinhos e inicial dourada" className="aspect-[3/4] w-full object-cover" fetchPriority="high" />
+              <img src={foto(28)} alt="Três canecas pintadas à mão: bonequinha, flores rosa e flor roxa" className="aspect-[3/4] w-full object-cover" fetchPriority="high" />
             </div>
           </Drift>
           <Drift hero className="absolute -bottom-2 left-0 w-[40%]" from={20} to={-90}>
@@ -237,14 +261,16 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
         <div className="overflow-hidden bg-papel">
           <img
             src={foto(p.fotos[0])}
+            srcSet={`${fotoP(p.fotos[0])} 480w, ${foto(p.fotos[0])} 1200w`}
+            sizes="(min-width: 1024px) 380px, (min-width: 640px) 45vw, 50vw"
             alt={p.nome}
             loading="lazy"
             className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         </div>
         <div className="flex flex-1 flex-col p-3 sm:p-5">
-          <p className="rotulo text-[11px] tracking-[0.1em] text-tinta-suave sm:tracking-[0.22em]">{p.categoria}</p>
-          <h3 className="titulo mt-1.5 text-[22px] leading-none sm:mt-2 sm:text-[30px]">{p.nome}</h3>
+          <p className="rotulo hidden text-[11px] text-tinta-suave sm:block sm:tracking-[0.22em]">{p.categoria}</p>
+          <h3 className="titulo text-[22px] leading-none sm:mt-2 sm:text-[30px]">{p.nome}</h3>
           <p className="mt-2 hidden text-[15px] leading-relaxed text-tinta-suave sm:block">{p.resumo}</p>
           <span className="rotulo mt-auto inline-block self-start border-b border-indigo pb-0.5 pt-3 text-[11px] text-indigo sm:pt-4 sm:pb-1 sm:text-[12px]">Ver detalhes</span>
         </div>
@@ -255,15 +281,17 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
 
 function Colecao() {
   const [cat, setCat] = useState<Categoria>('Todas')
-  const lista = cat === 'Todas' ? produtos : produtos.filter((p) => p.categoria === cat)
+  const [todas, setTodas] = useState(false)
+  const filtrada = cat === 'Todas' ? produtos : produtos.filter((p) => p.categoria === cat)
+  const lista = cat === 'Todas' && !todas ? filtrada.slice(0, 9) : filtrada
   return (
     <section id="colecao" className="relative overflow-hidden bg-laranja">
-      <Drift className="pointer-events-none absolute -right-6 top-6 hidden lg:block" from={-30} to={90} rot={[-12, 24]}><Xicara className="h-40" color="#fff" /></Drift>
-      <Drift className="pointer-events-none absolute -left-10 top-40 hidden lg:block" from={-60} to={120} rot={[6, 26]}><Sprig className="h-64" color="#fff" /></Drift>
+      <Drift className="pointer-events-none absolute -right-6 top-6 hidden lg:block" from={-30} to={90} rot={[-4, 8]}><Xicara className="h-40" color="#fff" /></Drift>
+      <Drift className="pointer-events-none absolute -left-10 top-40 hidden lg:block" from={-60} to={120} rot={[2, 9]}><Sprig className="h-64" color="#fff" /></Drift>
       <div className="relative mx-auto max-w-[1200px] px-5 pb-16 pt-6 md:pb-24">
         <Reveal className="text-center">
           <h2 className="titulo !text-indigo text-[clamp(3.25rem,9vw,5.5rem)]">A coleção</h2>
-          <p className="script mt-2 text-4xl">tudo é feito sob encomenda, do seu jeito</p>
+          <p className="script mt-2 !text-tinta text-4xl">tudo é feito sob encomenda, do seu jeito</p>
         </Reveal>
         <div className="sem-barra -mx-5 mt-10 flex snap-x gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0" role="group" aria-label="Filtrar por tipo">
           {categorias.map((c) => (
@@ -284,6 +312,13 @@ function Colecao() {
             <Card key={p.slug} p={p} i={i} sobreLaranja />
           ))}
         </div>
+        {cat === 'Todas' && !todas && filtrada.length > 9 && (
+          <div className="mt-12 text-center">
+            <button onClick={() => setTodas(true)} className="btn btn-cheio">
+              Ver todas as {filtrada.length} peças
+            </button>
+          </div>
+        )}
       </div>
       <Onda fill="#fbf9f6" />
     </section>
@@ -296,26 +331,28 @@ function Passos() {
     ['Converse com a gente', 'O botão “Quero personalizar a minha” abre o WhatsApp com a mensagem pronta. Conte cores, tema, inicial e prazo.'],
     ['Pintada só para você', 'Combinado o pedido, a peça é pintada à mão e finalizada com o acabamento escolhido.'],
   ]
-  const recuo = ['md:ml-0', 'md:ml-[12%]', 'md:ml-[24%]']
   return (
     <section id="encomenda" className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
       <Reveal className="text-center">
         <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Como encomendar</h2>
         <p className="script mt-1 text-4xl">simples como uma conversa</p>
       </Reveal>
-      <ol className="mt-14 max-w-[900px] md:mx-auto">
+      <ol className="mt-14 grid gap-10 md:grid-cols-3 md:gap-12">
         {passos.map(([t, d], i) => (
-          <Reveal key={t} from={i % 2 ? 'right' : 'left'} delay={i * 0.08}>
-            <li className={`flex list-none items-baseline gap-5 border-t border-indigo/25 py-8 md:gap-8 ${recuo[i]}`}>
-              <span className="titulo text-[72px] !text-mel md:text-[104px]" style={{ WebkitTextStroke: '1px #234386' }}>
-                0{i + 1}
-              </span>
-              <div className="max-w-[440px]">
-                <h3 className="titulo text-[32px] md:text-[40px]">{t}</h3>
-                <p className="mt-2 leading-relaxed text-tinta-suave">{d}</p>
-              </div>
-            </li>
-          </Reveal>
+          <motion.li
+            key={t}
+            className="list-none border-t-2 border-indigo pt-5"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease, delay: i * 0.08 }}
+          >
+            <span className="titulo text-[64px] !text-mel" style={{ WebkitTextStroke: '1px #234386' }}>
+              0{i + 1}
+            </span>
+            <h3 className="titulo mt-1 text-[32px]">{t}</h3>
+            <p className="mt-2 max-w-[34ch] leading-relaxed text-tinta-suave">{d}</p>
+          </motion.li>
         ))}
       </ol>
     </section>
@@ -325,11 +362,11 @@ function Passos() {
 function Sobre() {
   return (
     <section id="sobre" className="relative overflow-hidden bg-papel">
-      <Drift className="pointer-events-none absolute -left-6 bottom-10 hidden lg:block" from={60} to={-60} rot={[-24, 6]}><Margarida className="h-60" /></Drift>
+      <Drift className="pointer-events-none absolute -left-6 bottom-10 hidden lg:block" from={60} to={-60} rot={[-8, 2]}><Margarida className="h-60" /></Drift>
       <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 pb-12 pt-6 md:grid-cols-2 md:pb-16">
         <Reveal>
           <div className="relative mx-auto max-w-[440px] py-6">
-            <Drift className="absolute -left-8 -top-2 w-[90%]" from={-25} to={35} rot={[-5, 5]}><Blob fill="#a2d3a6" variante={2} className="block w-full" /></Drift>
+            <Drift className="absolute -left-8 -top-2 w-[90%]" from={-25} to={35} rot={[-2, 2]}><Blob fill="#a2d3a6" variante={2} className="block w-full" /></Drift>
             <Drift className="relative" from={25} to={-25}>
             <div className="overflow-hidden rounded-lg bg-white shadow-cartao">
               <img src={foto(13)} alt="Kit de chá margarida pintado à mão" loading="lazy" className="aspect-[4/5] w-full object-cover" />
@@ -338,8 +375,8 @@ function Sobre() {
           </div>
         </Reveal>
         <Reveal delay={0.1}>
-          <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Uma flor, uma pena, um filete de ouro. Tudo pintado à mão</h2>
-          <p className="script mt-3 text-4xl">nenhuma peça sai igual à outra</p>
+          <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Nenhuma peça igual à outra</h2>
+          <p className="script mt-3 text-4xl">uma flor, uma pena, um filete de ouro: tudo pintado à mão</p>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
             No ateliê PorcelanArt, nenhuma peça é feita em série. Presentes de aniversário, casamento, chá de bebê, lembrancinhas ou um mimo para si: conte a ideia e a gente pinta.
           </p>
@@ -367,8 +404,8 @@ function Rodape() {
         >
           <ZapIcon /> Chamar no WhatsApp
         </a>
-        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="btn border-2 border-white !text-white transition-colors hover:bg-white hover:!text-indigo">
-          <InstaIcon /> Instagram @{INSTAGRAM}
+        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="rotulo inline-flex min-h-[44px] items-center gap-2.5 text-white underline decoration-white/40 underline-offset-8 hover:decoration-white">
+          <InstaIcon /> @{INSTAGRAM}
         </a>
         <p className="mt-6 text-xs text-white/70">© {new Date().getFullYear()} PorcelanArt · Todas as peças são pintadas à mão.</p>
       </div>
@@ -381,7 +418,8 @@ function Home() {
   useEffect(() => {
     if (loc.hash) document.querySelector(loc.hash)?.scrollIntoView()
     else window.scrollTo(0, 0)
-  }, [loc.hash, loc.pathname])
+  }, [loc.key])
+  usePagina('PorcelanArt — Porcelana pintada à mão', 'Canecas, xícaras, pratos, boleiras, kits e mais, pintados à mão com acabamento dourado. Personalize a sua pelo WhatsApp.', '/')
   return (
     <>
       <Hero />
@@ -399,6 +437,19 @@ function Peca() {
   const faixa = useRef<HTMLDivElement>(null)
   const total = p?.fotos.length ?? 0
   const ir = (d: number) => setAtual((a) => (a + d + total) % total)
+  const [pronta, setPronta] = useState(false)
+  useEffect(() => setPronta(false), [atual, slug])
+  useEffect(() => {
+    if (!p || total < 2) return
+    const prox = new Image()
+    prox.src = foto(p.fotos[(atual + 1) % total])
+  }, [p, atual, total])
+  usePagina(
+    p ? `${p.nome} — PorcelanArt` : 'Peça não encontrada — PorcelanArt',
+    p ? `${p.resumo} Personalize a sua pelo WhatsApp.` : 'Essa página não existe. Veja a coleção da PorcelanArt.',
+    p ? `/peca/${p.slug}` : '/',
+    !p,
+  )
   useEffect(() => {
     faixa.current?.querySelector<HTMLElement>('[data-ativa="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
   }, [atual])
@@ -428,15 +479,29 @@ function Peca() {
       <section className="relative mx-auto grid max-w-[1200px] gap-10 px-5 pb-20 pt-4 md:grid-cols-[1.1fr_1fr] md:pt-8">
         <div className="relative min-w-0">
           <Blob fill="#ffc400" variante={1} className="absolute -left-8 -top-6 w-[70%]" />
-          <div className="relative overflow-hidden rounded-lg bg-white shadow-cartao">
+          <div
+            className="relative overflow-hidden rounded-lg bg-white shadow-cartao"
+            role="group"
+            aria-roledescription="carrossel"
+            aria-label={`Fotos de ${p.nome}`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') ir(1)
+              if (e.key === 'ArrowLeft') ir(-1)
+            }}
+          >
             <motion.img
-              key={atual}
+              key={`${slug}-${atual}`}
+              ref={(el) => {
+                if (el?.complete && el.naturalWidth) setPronta(true)
+              }}
+              onLoad={() => setPronta(true)}
               src={foto(p.fotos[atual])}
               alt={`${p.nome} — foto ${atual + 1}`}
               className="aspect-[4/5] w-full cursor-grab object-cover active:cursor-grabbing"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
+              animate={{ opacity: pronta ? 1 : 0 }}
+              transition={{ duration: 0.35 }}
               drag={total > 1 ? 'x' : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.25}
@@ -466,11 +531,11 @@ function Peca() {
                   key={f}
                   onClick={() => setAtual(i)}
                   aria-label={`Ver foto ${i + 1}`}
-                  aria-current={atual === i}
+                  aria-current={atual === i ? 'true' : undefined}
                   data-ativa={atual === i}
                   className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition-all ${atual === i ? 'border-indigo' : 'border-transparent opacity-70 hover:opacity-100'}`}
                 >
-                  <img src={foto(f)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <img src={fotoP(f)} alt="" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -513,9 +578,12 @@ function Peca() {
 export default function App() {
   return (
     <>
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-indigo focus:px-5 focus:py-3 focus:text-white">
+        Pular para o conteúdo
+      </a>
       <ScrollProgress />
       <Header />
-      <main>
+      <main id="conteudo">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/peca/:slug" element={<Peca />} />

@@ -81,7 +81,8 @@ body {
   color: #b4470a;
 }
 .btn-vazado:hover {
-  background: var(--color-laranja);
+  background: #b4470a;
+  border-color: #b4470a;
   color: #fff;
 }
 

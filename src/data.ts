@@ -255,6 +255,11 @@ export const produtos: Produto[] = [
 ]
 
 export const foto = (f: Foto) => (typeof f === 'number' ? `/img/foto-${f}.webp` : `/img/${f}.webp`)
+/** versão pequena (480px) para cards e miniaturas */
+export const fotoP = (f: Foto) => foto(f).replace('.webp', '-s.webp')
+// galerias enxutas: sem repetição e no máximo 8 fotos por peça
+for (const p of produtos) p.fotos = [...new Set(p.fotos)].slice(0, 8)
+
 export const achar = (slug?: string) => produtos.find((p) => p.slug === slug)
 
 export const linkZap = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`
