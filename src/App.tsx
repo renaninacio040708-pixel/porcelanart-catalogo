@@ -380,7 +380,7 @@ function Peca() {
                   aria-current={atual === i}
                   className={`h-20 w-20 overflow-hidden rounded-lg border-2 bg-white transition-all ${atual === i ? 'border-indigo' : 'border-transparent opacity-70 hover:opacity-100'}`}
                 >
-                  <img src={foto(f)} alt="" className="h-full w-full object-cover" />
+                  <img src={foto(f)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
