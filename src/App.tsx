@@ -39,6 +39,16 @@ function ZapIcon() {
   )
 }
 
+function InstaIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 function Header() {
   const [aberto, setAberto] = useState(false)
   const loc = useLocation()
@@ -60,10 +70,22 @@ function Header() {
               {l.t}
             </Link>
           ))}
+          <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="rotulo inline-flex items-center gap-2 text-indigo transition-opacity hover:opacity-60">
+            <InstaIcon size={18} /> Instagram
+          </a>
           <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-cheio !py-3">
             Fale conosco
           </a>
         </nav>
+        <a
+          href={`https://instagram.com/${INSTAGRAM}`}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Instagram da PorcelanArt"
+          className="ml-auto mr-1 grid h-12 w-12 place-items-center text-indigo md:hidden"
+        >
+          <InstaIcon size={24} />
+        </a>
         <button
           className="grid h-12 w-12 place-items-center md:hidden"
           aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
@@ -119,6 +141,14 @@ function Hero() {
               Pedir orçamento <span aria-hidden="true">→</span>
             </a>
           </div>
+          <a
+            href={`https://instagram.com/${INSTAGRAM}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rotulo mt-6 inline-flex min-h-[44px] items-center gap-2.5 text-indigo underline decoration-indigo/40 underline-offset-8 transition-opacity hover:opacity-70"
+          >
+            <InstaIcon /> Veja mais peças no Instagram @{INSTAGRAM}
+          </a>
         </motion.div>
 
         <motion.div
@@ -274,8 +304,8 @@ function Rodape() {
         >
           <ZapIcon /> Chamar no WhatsApp
         </a>
-        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="rotulo text-white/85 underline underline-offset-8 hover:text-white">
-          @{INSTAGRAM}
+        <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="btn border-2 border-white !text-white transition-colors hover:bg-white hover:!text-indigo">
+          <InstaIcon /> Instagram @{INSTAGRAM}
         </a>
         <p className="mt-6 text-xs text-white/70">© {new Date().getFullYear()} PorcelanArt · Todas as peças são pintadas à mão.</p>
       </div>
