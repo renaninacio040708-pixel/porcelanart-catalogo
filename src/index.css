@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-indigo: #234386;
+  --color-mel: #ffc400;
+  --color-laranja: #ed7328;
+  --color-ceu: #6aa8dc;
+  --color-areia: #d2b68c;
+  --color-sage: #a2d3a6;
+  --color-papel: #fbf9f6;
+  --color-tinta: #141414;
+  --color-tinta-suave: #4a4a4a;
+  --font-display: 'Bebas Neue', 'Oswald', Impact, sans-serif;
+  --font-script: 'Caveat', cursive;
+  --font-label: 'Jost', 'Futura', sans-serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --shadow-cartao: rgba(0, 0, 0, 0.16) -14px 10px 49px 0px;
+  --shadow-suave: rgba(0, 0, 0, 0.05) 0px 20px 27px 0px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* rótulos em caixa alta com tracking largo — assinatura tipográfica do sistema */
+.rotulo {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.titulo {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-indigo);
+  line-height: 0.95;
+}
+
+.script {
+  font-family: var(--font-script);
+  color: var(--color-indigo);
+  line-height: 1.15;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 32px;
+  padding: 1.1rem 2.2rem;
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background-color 0.25s, color 0.25s;
+  min-height: 48px;
+}
+.btn-cheio {
+  background: var(--color-indigo);
+  color: #fff;
+}
+.btn-cheio:hover {
+  background: #1b3369;
+}
+.btn-vazado {
+  border: 2px solid var(--color-laranja);
+  color: #b4470a;
+}
+.btn-vazado:hover {
+  background: var(--color-laranja);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
