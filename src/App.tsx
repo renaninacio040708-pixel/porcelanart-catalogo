@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Route, Routes, useLocation, useParams } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react'
 import { Blob, Margarida, Onda, Sprig, Xicara } from './Decor'
 import {
   INSTAGRAM,
@@ -17,17 +17,72 @@ import {
 const ease = [0.22, 1, 0.36, 1] as const
 const MSG_GERAL = 'Olá! Vim pelo site da PorcelanArt e quero personalizar a minha peça.'
 
-function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
+function Reveal({
+  children,
+  delay = 0,
+  className = '',
+  from = 'up',
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+  /** up = sobe (títulos), left/right = entra pela lateral (passos), scale = abre (cartões) */
+  from?: 'up' | 'left' | 'right' | 'scale'
+}) {
+  const start =
+    from === 'left' ? { opacity: 0, x: -36 } : from === 'right' ? { opacity: 0, x: 36 } : from === 'scale' ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 18 }
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={start}
+      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.7, ease, delay }}
     >
       {children}
     </motion.div>
+  )
+}
+
+/** Elemento que se desloca/gira conforme a rolagem (parallax). Respeita prefers-reduced-motion. */
+function Drift({
+  children,
+  from = -30,
+  to = 30,
+  rot = [0, 0],
+  hero = false,
+  className = '',
+}: {
+  children: React.ReactNode
+  from?: number
+  to?: number
+  rot?: [number, number]
+  /** true = parte em 0 no topo da página (usar no hero) */
+  hero?: boolean
+  className?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: hero ? ['start start', 'end start'] : ['start end', 'end start'] })
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [from, to])
+  const rotate = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : rot)
+  return (
+    <motion.div ref={ref} style={{ y, rotate }} className={className}>
+      {children}
+    </motion.div>
+  )
+}
+
+/** Barra fina no topo que mostra o progresso da rolagem da página. */
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll()
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 28, mass: 0.4 })
+  return (
+    <motion.div
+      style={{ scaleX }}
+      className="fixed inset-x-0 top-0 z-40 h-[3px] origin-left bg-laranja"
+      aria-hidden="true"
+    />
   )
 }
 
@@ -118,18 +173,17 @@ function Header() {
 function Hero() {
   return (
     <section className="relative overflow-hidden bg-papel">
-      <Sprig className="pointer-events-none absolute -left-8 top-24 hidden h-72 rotate-[-12deg] opacity-80 lg:block" />
-      <Margarida className="pointer-events-none absolute -right-4 bottom-24 hidden h-64 rotate-[8deg] opacity-70 lg:block" color="#6aa8dc" />
+      <Drift hero className="pointer-events-none absolute -left-8 top-24 hidden lg:block" from={-40} to={70} rot={[-22, 4]}><Sprig className="h-72 opacity-80" /></Drift>
+      <Drift hero className="pointer-events-none absolute -right-4 bottom-24 hidden lg:block" from={50} to={-60} rot={[-6, 20]}><Margarida className="h-64 opacity-70" color="#6aa8dc" /></Drift>
       <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-5 pb-10 pt-8 md:grid-cols-[1fr_1fr] md:pb-16 md:pt-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease }}>
-          <p className="rotulo mb-5 text-indigo">Ateliê de porcelana pintada à mão</p>
-          <h1 className="titulo text-[64px] sm:text-[88px] lg:text-[104px]">
+          <h1 className="titulo text-[clamp(3.5rem,11vw,6rem)]">
             Porcelana
             <br />
             pintada
             <br />à mão
           </h1>
-          <p className="script mt-4 text-4xl sm:text-5xl">cada peça, uma pequena história</p>
+          <p className="script mt-4 text-4xl sm:text-5xl">com a sua inicial em ouro</p>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
             Canecas, xícaras, pratos e kits com flores, passarinhos e o seu toque em dourado. Tudo feito sob encomenda — chame no WhatsApp e monte a sua.
           </p>
@@ -138,7 +192,7 @@ function Hero() {
               Ver a coleção
             </a>
             <a href={linkZap(MSG_GERAL)} target="_blank" rel="noreferrer" className="btn btn-vazado">
-              Quero personalizar a minha <span aria-hidden="true">→</span>
+              Quero personalizar a minha
             </a>
           </div>
           <a
@@ -157,14 +211,18 @@ function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease, delay: 0.1 }}
         >
-          <Blob fill="#ffc400" variante={0} className="absolute -right-6 -top-4 w-[86%]" />
-          <Blob fill="#a2d3a6" variante={1} className="absolute -bottom-6 -left-6 w-[60%]" />
-          <div className="relative mx-auto w-[78%] overflow-hidden rounded-lg bg-white shadow-cartao md:ml-auto md:mr-6">
-            <img src={foto(4)} alt="Canecas pintadas com passarinhos e inicial dourada" className="aspect-[3/4] w-full object-cover" fetchPriority="high" />
-          </div>
-          <div className="absolute -bottom-2 left-0 w-[40%] overflow-hidden rounded-lg border-[6px] border-white bg-white shadow-cartao">
-            <img src={foto(1)} alt="Xícara com gatinho floral em relevo" className="aspect-square w-full object-cover" />
-          </div>
+          <Drift hero className="absolute -right-6 -top-4 w-[86%]" from={-10} to={50} rot={[-4, 6]}><Blob fill="#ffc400" variante={0} className="block w-full" /></Drift>
+          <Drift hero className="absolute -bottom-6 -left-6 w-[60%]" from={20} to={-40} rot={[6, -6]}><Blob fill="#a2d3a6" variante={1} className="block w-full" /></Drift>
+          <Drift hero className="relative mx-auto w-[78%] md:ml-auto md:mr-6" from={0} to={-40}>
+            <div className="overflow-hidden rounded-lg bg-white shadow-cartao">
+              <img src={foto(4)} alt="Canecas pintadas com passarinhos e inicial dourada" className="aspect-[3/4] w-full object-cover" fetchPriority="high" />
+            </div>
+          </Drift>
+          <Drift hero className="absolute -bottom-2 left-0 w-[40%]" from={20} to={-90}>
+            <div className="overflow-hidden rounded-lg border-[6px] border-white bg-white shadow-cartao">
+              <img src={foto(1)} alt="Xícara com gatinho floral em relevo" className="aspect-square w-full object-cover" />
+            </div>
+          </Drift>
         </motion.div>
       </div>
       <Onda fill="#ed7328" />
@@ -174,8 +232,8 @@ function Hero() {
 
 function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLaranja?: boolean }) {
   return (
-    <Reveal delay={(i % 3) * 0.08}>
-      <Link to={`/peca/${p.slug}`} className={`group block overflow-hidden rounded-lg bg-white ${sobreLaranja ? 'shadow-cartao' : 'shadow-suave'}`}>
+    <Reveal from="scale" delay={(i % 3) * 0.08} className="h-full">
+      <Link to={`/peca/${p.slug}`} className={`group flex h-full flex-col overflow-hidden rounded-lg bg-white ${sobreLaranja ? 'shadow-cartao' : 'shadow-suave'}`}>
         <div className="overflow-hidden bg-papel">
           <img
             src={foto(p.fotos[0])}
@@ -184,11 +242,11 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
             className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         </div>
-        <div className="p-3 sm:p-5">
-          <p className="rotulo text-[9px] tracking-[0.14em] text-tinta-suave sm:text-[11px] sm:tracking-[0.22em]">{p.categoria}</p>
+        <div className="flex flex-1 flex-col p-3 sm:p-5">
+          <p className="rotulo text-[11px] tracking-[0.1em] text-tinta-suave sm:tracking-[0.22em]">{p.categoria}</p>
           <h3 className="titulo mt-1.5 text-[22px] leading-none sm:mt-2 sm:text-[30px]">{p.nome}</h3>
           <p className="mt-2 hidden text-[15px] leading-relaxed text-tinta-suave sm:block">{p.resumo}</p>
-          <span className="rotulo mt-3 inline-block border-b border-indigo pb-0.5 text-[10px] text-indigo sm:mt-4 sm:pb-1 sm:text-[12px]">Ver detalhes →</span>
+          <span className="rotulo mt-auto inline-block self-start border-b border-indigo pb-0.5 pt-3 text-[11px] text-indigo sm:pt-4 sm:pb-1 sm:text-[12px]">Ver detalhes</span>
         </div>
       </Link>
     </Reveal>
@@ -200,20 +258,20 @@ function Colecao() {
   const lista = cat === 'Todas' ? produtos : produtos.filter((p) => p.categoria === cat)
   return (
     <section id="colecao" className="relative overflow-hidden bg-laranja">
-      <Xicara className="pointer-events-none absolute -right-6 top-6 hidden h-40 rotate-[10deg] lg:block" color="#fff" />
-      <Sprig className="pointer-events-none absolute -left-10 top-40 hidden h-64 rotate-[14deg] lg:block" color="#fff" />
+      <Drift className="pointer-events-none absolute -right-6 top-6 hidden lg:block" from={-30} to={90} rot={[-12, 24]}><Xicara className="h-40" color="#fff" /></Drift>
+      <Drift className="pointer-events-none absolute -left-10 top-40 hidden lg:block" from={-60} to={120} rot={[6, 26]}><Sprig className="h-64" color="#fff" /></Drift>
       <div className="relative mx-auto max-w-[1200px] px-5 pb-16 pt-6 md:pb-24">
         <Reveal className="text-center">
-          <h2 className="titulo !text-white text-[56px] md:text-[88px]">A coleção</h2>
-          <p className="script !text-white mt-2 text-4xl">tudo é feito sob encomenda, do seu jeito</p>
+          <h2 className="titulo !text-indigo text-[clamp(3.25rem,9vw,5.5rem)]">A coleção</h2>
+          <p className="script mt-2 text-4xl">tudo é feito sob encomenda, do seu jeito</p>
         </Reveal>
-        <div className="mt-10 flex flex-wrap justify-center gap-3" role="group" aria-label="Filtrar por tipo">
+        <div className="sem-barra -mx-5 mt-10 flex snap-x gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0" role="group" aria-label="Filtrar por tipo">
           {categorias.map((c) => (
             <button
               key={c}
               onClick={() => setCat(c)}
               aria-pressed={cat === c}
-              className={`rotulo min-h-[44px] rounded-full px-6 py-2.5 transition-colors ${
+              className={`rotulo min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-full px-6 py-2.5 transition-colors ${
                 cat === c ? 'bg-indigo text-white' : 'bg-white text-indigo hover:bg-papel'
               }`}
             >
@@ -238,21 +296,24 @@ function Passos() {
     ['Converse com a gente', 'O botão “Quero personalizar a minha” abre o WhatsApp com a mensagem pronta. Conte cores, tema, inicial e prazo.'],
     ['Pintada só para você', 'Combinado o pedido, a peça é pintada à mão e finalizada com o acabamento escolhido.'],
   ]
+  const recuo = ['md:ml-0', 'md:ml-[12%]', 'md:ml-[24%]']
   return (
     <section id="encomenda" className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
       <Reveal className="text-center">
-        <h2 className="titulo text-[52px] md:text-[72px]">Como encomendar</h2>
+        <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Como encomendar</h2>
         <p className="script mt-1 text-4xl">simples como uma conversa</p>
       </Reveal>
-      <ol className="mt-14 grid gap-6 md:grid-cols-3">
+      <ol className="mt-14 max-w-[900px] md:mx-auto">
         {passos.map(([t, d], i) => (
-          <Reveal key={t} delay={i * 0.1}>
-            <li className="h-full list-none rounded-lg bg-white p-8 shadow-suave">
-              <span className="titulo text-[64px] !text-mel" style={{ WebkitTextStroke: '1px #234386' }}>
+          <Reveal key={t} from={i % 2 ? 'right' : 'left'} delay={i * 0.08}>
+            <li className={`flex list-none items-baseline gap-5 border-t border-indigo/25 py-8 md:gap-8 ${recuo[i]}`}>
+              <span className="titulo text-[72px] !text-mel md:text-[104px]" style={{ WebkitTextStroke: '1px #234386' }}>
                 0{i + 1}
               </span>
-              <h3 className="titulo mt-2 text-[32px]">{t}</h3>
-              <p className="mt-3 leading-relaxed text-tinta-suave">{d}</p>
+              <div className="max-w-[440px]">
+                <h3 className="titulo text-[32px] md:text-[40px]">{t}</h3>
+                <p className="mt-2 leading-relaxed text-tinta-suave">{d}</p>
+              </div>
             </li>
           </Reveal>
         ))}
@@ -264,24 +325,26 @@ function Passos() {
 function Sobre() {
   return (
     <section id="sobre" className="relative overflow-hidden bg-papel">
-      <Margarida className="pointer-events-none absolute -left-6 bottom-10 hidden h-60 rotate-[-10deg] lg:block" />
+      <Drift className="pointer-events-none absolute -left-6 bottom-10 hidden lg:block" from={60} to={-60} rot={[-24, 6]}><Margarida className="h-60" /></Drift>
       <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 pb-12 pt-6 md:grid-cols-2 md:pb-16">
         <Reveal>
           <div className="relative mx-auto max-w-[440px] py-6">
-            <Blob fill="#a2d3a6" variante={2} className="absolute -left-8 -top-2 w-[90%]" />
-            <div className="relative overflow-hidden rounded-lg bg-white shadow-cartao">
+            <Drift className="absolute -left-8 -top-2 w-[90%]" from={-25} to={35} rot={[-5, 5]}><Blob fill="#a2d3a6" variante={2} className="block w-full" /></Drift>
+            <Drift className="relative" from={25} to={-25}>
+            <div className="overflow-hidden rounded-lg bg-white shadow-cartao">
               <img src={foto(13)} alt="Kit de chá margarida pintado à mão" loading="lazy" className="aspect-[4/5] w-full object-cover" />
             </div>
+            </Drift>
           </div>
         </Reveal>
         <Reveal delay={0.1}>
-          <h2 className="titulo text-[52px] md:text-[72px]">Feito com calma, detalhe por detalhe</h2>
+          <h2 className="titulo text-[clamp(3rem,7vw,4.5rem)]">Uma flor, uma pena, um filete de ouro. Tudo pintado à mão</h2>
           <p className="script mt-3 text-4xl">nenhuma peça sai igual à outra</p>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta-suave">
             No ateliê PorcelanArt cada flor, pena e filete dourado é pintado à mão. Presentes de aniversário, casamento, chá de bebê, lembrancinhas ou um mimo para si: conte a ideia e a gente pinta.
           </p>
           <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noreferrer" className="btn btn-vazado mt-8">
-            Ver no Instagram <span aria-hidden="true">→</span>
+            Ver mais no Instagram
           </a>
         </Reveal>
       </div>
@@ -333,6 +396,12 @@ function Peca() {
   const { slug } = useParams()
   const p = achar(slug)
   const [atual, setAtual] = useState(0)
+  const faixa = useRef<HTMLDivElement>(null)
+  const total = p?.fotos.length ?? 0
+  const ir = (d: number) => setAtual((a) => (a + d + total) % total)
+  useEffect(() => {
+    faixa.current?.querySelector<HTMLElement>('[data-ativa="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+  }, [atual])
   useEffect(() => {
     window.scrollTo(0, 0)
     setAtual(0)
@@ -357,28 +426,49 @@ function Peca() {
         </Link>
       </div>
       <section className="relative mx-auto grid max-w-[1200px] gap-10 px-5 pb-20 pt-4 md:grid-cols-[1.1fr_1fr] md:pt-8">
-        <div className="relative">
+        <div className="relative min-w-0">
           <Blob fill="#ffc400" variante={1} className="absolute -left-8 -top-6 w-[70%]" />
           <div className="relative overflow-hidden rounded-lg bg-white shadow-cartao">
             <motion.img
               key={atual}
               src={foto(p.fotos[atual])}
               alt={`${p.nome} — foto ${atual + 1}`}
-              className="aspect-[4/5] w-full object-cover"
+              className="aspect-[4/5] w-full cursor-grab object-cover active:cursor-grabbing"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }}
+              drag={total > 1 ? 'x' : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.25}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -60) ir(1)
+                else if (info.offset.x > 60) ir(-1)
+              }}
             />
+            {total > 1 && (
+              <>
+                <button onClick={() => ir(-1)} aria-label="Foto anterior" className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-indigo shadow-suave transition-colors hover:bg-white">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+                </button>
+                <button onClick={() => ir(1)} aria-label="Próxima foto" className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-indigo shadow-suave transition-colors hover:bg-white">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+                </button>
+                <span className="rotulo absolute bottom-3 right-3 rounded-full bg-indigo px-3 py-1 text-[11px] text-white" aria-live="polite">
+                  {atual + 1} / {total}
+                </span>
+              </>
+            )}
           </div>
           {p.fotos.length > 1 && (
-            <div className="relative mt-4 flex flex-wrap gap-3">
+            <div ref={faixa} className="sem-barra relative mt-4 flex gap-3 overflow-x-auto pb-1">
               {p.fotos.map((f, i) => (
                 <button
                   key={f}
                   onClick={() => setAtual(i)}
                   aria-label={`Ver foto ${i + 1}`}
                   aria-current={atual === i}
-                  className={`h-20 w-20 overflow-hidden rounded-lg border-2 bg-white transition-all ${atual === i ? 'border-indigo' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                  data-ativa={atual === i}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition-all ${atual === i ? 'border-indigo' : 'border-transparent opacity-70 hover:opacity-100'}`}
                 >
                   <img src={foto(f)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
@@ -388,7 +478,7 @@ function Peca() {
         </div>
         <div className="md:pt-6">
           <p className="rotulo text-tinta-suave">{p.categoria}</p>
-          <h1 className="titulo mt-3 text-[52px] md:text-[72px]">{p.nome}</h1>
+          <h1 className="titulo mt-3 text-[clamp(2.5rem,6vw,4.5rem)]">{p.nome}</h1>
           <p className="script mt-3 text-3xl">{p.resumo}</p>
           <p className="mt-6 text-[17px] leading-relaxed text-tinta-suave">{p.descricao}</p>
           <ul className="mt-6 space-y-2.5">
@@ -408,7 +498,7 @@ function Peca() {
       </section>
       <section className="bg-white py-16">
         <div className="mx-auto max-w-[1200px] px-5">
-          <h2 className="titulo text-[44px]">Você também pode gostar</h2>
+          <h2 className="titulo text-[44px]">Outras peças para personalizar</h2>
           <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
             {relacionados.map((r, i) => (
               <Card key={r.slug} p={r} i={i} />
@@ -423,6 +513,7 @@ function Peca() {
 export default function App() {
   return (
     <>
+      <ScrollProgress />
       <Header />
       <main>
         <Routes>

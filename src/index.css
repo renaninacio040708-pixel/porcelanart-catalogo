@@ -95,3 +95,10 @@ body {
     scroll-behavior: auto;
   }
 }
+
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}
