@@ -2,7 +2,7 @@
 export const WHATSAPP = '5511992299621'
 export const INSTAGRAM = 'porcelanart.atelie'
 
-export const categorias = ['Todas', 'Canecas e xícaras', 'Pratos e bandejas', 'Kits de chá', 'Esculturas'] as const
+export const categorias = ['Todas', 'Xícaras e canecas', 'Pratos e bandejas', 'Bules e chá', 'Esculturas'] as const
 export type Categoria = (typeof categorias)[number]
 
 export type Produto = {
@@ -12,128 +12,90 @@ export type Produto = {
   resumo: string
   descricao: string
   detalhes: string[]
+  /** fotos de exemplos de peças já feitas (public/img/foto-N.webp) */
   fotos: number[]
 }
 
+// Cada item é um TIPO de peça sob encomenda; as fotos são exemplos de trabalhos já entregues.
 export const produtos: Produto[] = [
   {
-    slug: 'canecas-passarinhos',
-    nome: 'Kit Canecas Passarinhos com Bandeja',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Duas canecas, uma bandeja e um jardim de passarinhos.',
+    slug: 'xicara-pires-personalizada',
+    nome: 'Xícara com Pires Personalizada',
+    categoria: 'Xícaras e canecas',
+    resumo: 'Xícara e pires pintados à mão, com a sua inicial em ouro.',
     descricao:
-      'Um par de canecas nos tons rosa e azul-céu, pintadas com passarinhos entre galhos floridos e finalizadas com a inicial em ouro. A bandeja combina, com a casinha de passarinho e flores de cerejeira no centro.',
-    detalhes: ['Inicial dourada personalizada', 'Tons rosa e azul', 'Acompanha bandeja pintada'],
-    fotos: [4, 10, 11],
+      'Xícara com pires pintada à mão do jeito que você imaginar: escolha a inicial em ouro, as cores e o tema — flores, passarinhos, beija-flores e muito mais. As fotos são exemplos de peças já feitas.',
+    detalhes: ['Inicial em ouro', 'Você escolhe cores e tema', 'Pires combinando', 'Borda dourada'],
+    fotos: [24, 22, 26, 27, 23, 25],
   },
   {
-    slug: 'conjunto-beija-flor-tulipas',
-    nome: 'Conjunto Canecas e Pratos Coloridos',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Canecas com inicial e pires em degradê com beija-flores e tulipas.',
+    slug: 'conjunto-personalizado',
+    nome: 'Conjunto Xícara, Pires e Prato Personalizados',
+    categoria: 'Xícaras e canecas',
+    resumo: 'Xícaras com prato ou bandeja combinando, para presentear.',
     descricao:
-      'Canecas nos tons verde e pink (S e O) com a inicial em dourado, acompanhadas de pratos em degradê pintados com beija-flores, orquídeas, tulipas e renda ao fundo. Um conjunto cheio de cor para presentear.',
-    detalhes: ['Inicial dourada personalizada', 'Pratos em degradê', 'Suporte de acrílico para expor'],
-    fotos: [21, 24, 22, 26, 27, 23, 25],
+      'Um conjunto pintado sob medida: xícaras ou canecas com inicial em ouro acompanhadas de pratos ou bandeja na mesma arte. Ótimo para casais, madrinhas, casamentos e datas especiais.',
+    detalhes: ['Xícaras, pires e prato/bandeja na mesma arte', 'Inicial em ouro', 'Ideal para presente'],
+    fotos: [21, 4, 10, 11, 3],
   },
   {
-    slug: 'gatinho-floral',
-    nome: 'Xícara Gatinho Floral',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Gatinho em relevo coberto de rosas, com pires em formato de gatinho.',
+    slug: 'caneca-personalizada',
+    nome: 'Caneca Personalizada',
+    categoria: 'Xícaras e canecas',
+    resumo: 'Caneca com a sua inicial e a arte que você escolher.',
     descricao:
-      'Xícara com brilho madrepérola e um gatinho em relevo pintado com rosas e folhagens. A alça é o rabinho do gato e o pires tem o formato de uma carinha com orelhinhas. Borda em ouro.',
-    detalhes: ['Relevo pintado à mão', 'Acabamento madrepérola', 'Pires em formato de gatinho', 'Borda dourada'],
+      'Canecas pintadas à mão com inicial em ouro ou preto, em acabamentos como floral, passarinhos, marmorizado ou o tema que combinar com você. As fotos são exemplos de peças já feitas.',
+    detalhes: ['Inicial personalizada', 'Vários acabamentos e cores', 'Sob encomenda'],
+    fotos: [15, 16, 3, 4, 5],
+  },
+  {
+    slug: 'xicara-relevo-formato-especial',
+    nome: 'Xícara com Relevo e Pires em Formato Especial',
+    categoria: 'Xícaras e canecas',
+    resumo: 'Xícaras com desenho em relevo e pires em formatos divertidos.',
+    descricao:
+      'Peças com relevo pintado à mão e pires em formatos diferentes, como o gatinho das fotos, com brilho madrepérola e borda dourada. Converse sobre o bichinho ou desenho que você quer.',
+    detalhes: ['Relevo pintado à mão', 'Pires em formato especial', 'Acabamento madrepérola'],
     fotos: [1, 14],
   },
   {
-    slug: 'cha-margarida',
-    nome: 'Kit Chá Margarida',
-    categoria: 'Kits de chá',
-    resumo: 'Bule, xícara e pires em lilás com margaridas pintadas.',
+    slug: 'prato-personalizado',
+    nome: 'Prato Decorativo Personalizado',
+    categoria: 'Pratos e bandejas',
+    resumo: 'Pratos pintados à mão com o tema que você escolher.',
     descricao:
-      'Um conjunto para o chá da tarde: bule pequeno que encaixa sobre a xícara, mais um pires generoso. Fundo lilás suave, margaridas delicadas e folhas finas pintadas uma a uma.',
-    detalhes: ['Bule que encaixa sobre a xícara', 'Pires grande', 'Lilás com margaridas'],
+      'Pratos decorativos ou de mesa pintados à mão: aves, flores, borboletas, o que fizer sentido para você ou para quem vai ganhar. Podem ser feitos avulsos ou em par. As fotos são exemplos de peças já feitas.',
+    detalhes: ['Tema e cores à sua escolha', 'Avulso ou em par', 'Suporte de acrílico para expor'],
+    fotos: [7, 8, 17, 18, 6],
+  },
+  {
+    slug: 'bandeja-personalizada',
+    nome: 'Bandeja Personalizada',
+    categoria: 'Pratos e bandejas',
+    resumo: 'Bandejas pintadas à mão para decorar ou servir.',
+    descricao:
+      'Bandejas em vários formatos pintadas à mão, para servir um café, apoiar canecas ou enfeitar a mesa. Combinam com xícaras e canecas do mesmo conjunto.',
+    detalhes: ['Formatos variados', 'Combina com xícaras e canecas', 'Arte sob medida'],
+    fotos: [9, 11],
+  },
+  {
+    slug: 'bule-kit-cha',
+    nome: 'Bule e Kit de Chá Personalizado',
+    categoria: 'Bules e chá',
+    resumo: 'Bule, xícara e pires pintados à mão, para o chá da tarde.',
+    descricao:
+      'Bules e kits de chá com bule, xícara e pires na mesma arte. Nas fotos, um bule individual que encaixa sobre a xícara, em lilás com margaridas — mas a pintura pode ser feita no tema e nas cores que você preferir.',
+    detalhes: ['Bule, xícara e pires combinando', 'Tema e cores à escolha', 'Ótimo para presente'],
     fotos: [12, 13, 2],
   },
   {
-    slug: 'canecas-letra-jardim',
-    nome: 'Canecas com Inicial · Jardim',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Canecas rosa e verde-água com a sua letra em ouro.',
-    descricao:
-      'Canecas em degradê rosa e verde-água, com rosas pintadas na lateral e a inicial escolhida em dourado. Ótimas para presentear casais, mães, madrinhas. Acompanham prato ondulado a combinar.',
-    detalhes: ['Escolha a inicial', 'Rosas pintadas à mão', 'Prato ondulado a combinar'],
-    fotos: [3],
-  },
-  {
-    slug: 'prato-beija-flor',
-    nome: 'Prato Beija-flor',
-    categoria: 'Pratos e bandejas',
-    resumo: 'Beija-flor de asas abertas entre flores rosadas.',
-    descricao:
-      'Prato decorativo pintado em aquarela sobre porcelana: um beija-flor de plumagem colorida ao lado de flores rosa. Cada pena é pintada com paciência — nenhuma peça sai igual à outra.',
-    detalhes: ['Pintura em aquarela', 'Peça decorativa', 'Suporte de acrílico para expor'],
-    fotos: [7, 6],
-  },
-  {
-    slug: 'prato-coruja',
-    nome: 'Prato Coruja',
-    categoria: 'Pratos e bandejas',
-    resumo: 'Corujinha de olhos verdes sobre um céu em degradê.',
-    descricao:
-      'Uma corujinha ruiva de olhos verdes, empoleirada num galho, com folhas e florzinhas contornadas em pontilhado. Fundo em degradê do azul ao rosa.',
-    detalhes: ['Pintura e pontilhado à mão', 'Peça decorativa', 'Suporte de acrílico para expor'],
-    fotos: [8, 6],
-  },
-  {
-    slug: 'bandeja-narcisos',
-    nome: 'Bandeja Narcisos',
-    categoria: 'Pratos e bandejas',
-    resumo: 'Xícara azul cheia de narcisos, com moldura listrada.',
-    descricao:
-      'Bandeja retangular com cabo, moldura listrada em azul e amarelo e uma xícara transbordando narcisos. Serve para decorar ou para receber uma tábua de queijos.',
-    detalhes: ['Formato retangular com cabo', 'Assinada pela artista', 'Moldura listrada'],
-    fotos: [9, 6],
-  },
-  {
-    slug: 'pratos-laranja-floral',
-    nome: 'Pratos Laranja Floral',
-    categoria: 'Pratos e bandejas',
-    resumo: 'Par de pratos pêssego com flores, folhas e borboletas.',
-    descricao:
-      'Pratos em tom pêssego com margaridas, frutinhas de roseira, folhas outonais e uma renda suave com borboletas ao fundo. Em par ou avulsos.',
-    detalhes: ['Em par ou avulsos', 'Renda e borboletas ao fundo', 'Cores quentes'],
-    fotos: [17, 18],
-  },
-  {
-    slug: 'canecas-marmorizadas',
-    nome: 'Canecas Marmorizadas',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Efeito marmorizado terroso com inicial preta.',
-    descricao:
-      'Canecas com efeito marmorizado em tons de terracota e caramelo, cada uma com um desenho único, e a inicial em preto. Um visual mais sóbrio para quem gosta de peça com personalidade.',
-    detalhes: ['Cada peça tem um desenho único', 'Inicial personalizada', 'Interior branco'],
-    fotos: [15, 16],
-  },
-  {
-    slug: 'canecas-gatinhos',
-    nome: 'Canecas Gatinhos com Inicial',
-    categoria: 'Canecas e xícaras',
-    resumo: 'Listras alegres, gatinhos e uma letra grande em dourado.',
-    descricao:
-      'Canecas listradas em amarelo e laranja com gatinhos e a inicial em ouro. A imagem é uma arte de referência — cores, gatinhos e letra podem ser combinados no seu pedido.',
-    detalhes: ['Arte de referência', 'Cores e desenho sob medida', 'Inicial dourada'],
-    fotos: [5],
-  },
-  {
-    slug: 'sao-francisco',
-    nome: 'São Francisco de Assis',
+    slug: 'imagem-santo-porcelana',
+    nome: 'Imagens em Porcelana',
     categoria: 'Esculturas',
-    resumo: 'Imagem em porcelana com passarinhos e cervo.',
+    resumo: 'Esculturas de santos pintadas à mão com detalhes em ouro.',
     descricao:
-      'Escultura de São Francisco em hábito marrom com brilho de pátina, passarinhos dourados nas mãos, um cervo ao lado e base decorada com filete dourado.',
-    detalhes: ['Detalhes em ouro', 'Base decorada', 'Peça de presente ou altar'],
+      'Imagens em porcelana com pintura à mão e detalhes em ouro. As fotos mostram São Francisco de Assis; consulte a imagem que você procura.',
+    detalhes: ['Detalhes em ouro', 'Base decorada', 'Peça para presente ou altar'],
     fotos: [19, 20],
   },
 ]
