@@ -34,9 +34,9 @@ export const produtos: Produto[] = [
     categoria: 'Xícaras e canecas',
     resumo: 'Caneca com a sua inicial e a arte que você escolher.',
     descricao:
-      'Canecas pintadas à mão com inicial em ouro ou preto, em acabamentos como floral, passarinhos, marmorizado ou o tema que combinar com você. As fotos são exemplos de peças já feitas.',
+      'Canecas pintadas à mão com inicial em ouro ou preto, em acabamentos como floral, bonequinha, passarinhos, marmorizado ou o tema que combinar com você. As fotos são exemplos de peças já feitas.',
     detalhes: ['Inicial personalizada', 'Vários acabamentos e cores', 'Sob encomenda'],
-    fotos: [15, 16, 3, 4, 5],
+    fotos: [28, 15, 16, 3, 4, 5],
   },
   {
     slug: 'xicara-relevo-formato-especial',
