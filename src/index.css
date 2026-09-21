@@ -113,3 +113,10 @@ html.painel-escuro img,
 html.painel-escuro video {
   filter: invert(1) hue-rotate(180deg);
 }
+/* o cabeçalho do painel mantém as cores da marca (desfaz a inversão) e os cartões ganham um contorno para se destacar do fundo */
+html.painel-escuro header {
+  filter: invert(1) hue-rotate(180deg);
+}
+html.painel-escuro .bg-white {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
