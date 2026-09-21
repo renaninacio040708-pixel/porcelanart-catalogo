@@ -671,88 +671,116 @@ function VariacaoLinha({ v, aoMudar, aoRemover }: { v: Variacao; aoMudar: (v: Va
 }
 
 // ---------------------------------------------------------------- peças do "montar kit"
-const TIPOS_SUGERIDOS = ['Xícara', 'Pires', 'Prato', 'Bandeja', 'Caneca', 'Bule', 'Prato de sobremesa', 'Tigela', 'Copo']
+const TIPOS_FIXOS = ['Xícara', 'Pires', 'Prato', 'Bandeja', 'Caneca', 'Bule']
+const TIPOS_SUGERIDOS = [...TIPOS_FIXOS, 'Prato de sobremesa', 'Tigela', 'Copo']
 
 function Pecas({ s, pecas, recarregar, avisar }: Comum & { pecas: Peca[] | null }) {
-  const [editando, setEditando] = useState<NovaPeca | null>(null)
+  /** qual seção está com o formulário de "modelo" aberto (e qual modelo, se for edição) */
+  const [aberto, setAberto] = useState<{ tipo: string; peca: NovaPeca } | null>(null)
+  const [novoTipo, setNovoTipo] = useState('')
+  const [tiposExtras, setTiposExtras] = useState<string[]>([])
 
-  const grupos = useMemo(() => {
-    const m = new Map<string, Peca[]>()
+  const secoes = useMemo(() => {
+    const m = new Map<string, Peca[]>(TIPOS_FIXOS.map((t) => [t, []]))
     for (const p of pecas ?? []) m.set(p.tipo, [...(m.get(p.tipo) ?? []), p])
+    for (const t of tiposExtras) if (!m.has(t)) m.set(t, [])
     return [...m.entries()]
-  }, [pecas])
+  }, [pecas, tiposExtras])
 
-  const nova = (tipo = ''): NovaPeca => ({ tipo, modelo: '', preco: null, foto: null, status: 'ativo', ordem: (pecas?.length ?? 0) + 1 })
+  const abrirNovo = (tipo: string) =>
+    setAberto({ tipo, peca: { tipo, modelo: '', preco: null, foto: null, status: 'ativo', ordem: (pecas?.length ?? 0) + 1 } })
 
   const remover = async (p: Peca) => {
     if (!confirm(`Apagar o modelo “${p.modelo}”?`)) return
-    try { await s.removerPeca(p.id); await recarregar(); avisar('Peça apagada.') } catch (e) { avisar((e as Error).message, true) }
+    try { await s.removerPeca(p.id); await recarregar(); avisar('Modelo apagado.') } catch (e) { avisar((e as Error).message, true) }
   }
   const mudarStatus = async (p: Peca, st: Status) => {
     try { await s.salvarPeca({ ...p, status: st }); await recarregar() } catch (e) { avisar((e as Error).message, true) }
   }
+  const criarTipo = () => {
+    const t = novoTipo.trim()
+    if (!t) return
+    if (!secoes.some(([x]) => x.toLowerCase() === t.toLowerCase())) setTiposExtras((x) => [...x, t])
+    setNovoTipo('')
+    abrirNovo(t)
+  }
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-medium">Peças para “Montar meu próprio kit”</h1>
-        <button className={btnLaranja} onClick={() => setEditando(nova())}>+ Adicionar peça</button>
-      </div>
+      <h1 className="text-2xl font-medium">Peças para “Montar meu próprio kit”</h1>
       <p className="mt-2 max-w-2xl text-sm text-tinta-suave">
-        Cada peça é um <b>modelo</b> (ex.: Xícara “Rosas”, Xícara “Passarinhos”). O cliente escolhe a quantidade de cada modelo. O preço é o <b>preço base</b>:
-        no site aparece como “a partir de”, porque o valor final depende da personalização.
+        Para cada item (xícara, pires, prato, bandeja…) cadastre <b>quantos modelos quiser</b>: nome do modelo + foto. O cliente escolhe a quantidade de cada modelo no site.
+        O preço é o <b>preço base</b>: aparece como “a partir de”, porque o valor final depende da personalização.
       </p>
-
-      {editando && (
-        <FormPeca
-          s={s}
-          inicial={editando}
-          tipos={[...new Set([...TIPOS_SUGERIDOS, ...(pecas ?? []).map((p) => p.tipo)])]}
-          fechar={() => setEditando(null)}
-          salvo={async () => { setEditando(null); await recarregar(); avisar('Peça salva!') }}
-          avisar={avisar}
-        />
-      )}
 
       <div className="mt-5 space-y-4">
         {pecas === null && <p className="text-tinta-suave">Carregando…</p>}
-        {pecas && pecas.length === 0 && !editando && (
-          <div className="rounded-lg bg-white p-6 text-tinta-suave shadow-suave">
-            Nenhuma peça cadastrada. Enquanto isso, o site mostra tipos genéricos sem preço. Comece adicionando as xícaras, pires, pratos e bandejas que você faz.
-          </div>
-        )}
-        {grupos.map(([tipo, itens]) => (
-          <section key={tipo} className="rounded-lg bg-white shadow-suave">
-            <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
-              <h2 className="font-medium">{tipo} <span className="text-sm font-normal text-tinta-suave">({itens.length} modelo{itens.length > 1 ? 's' : ''})</span></h2>
-              <button className={btnLinha} onClick={() => setEditando(nova(tipo))}>+ Modelo de {tipo.toLowerCase()}</button>
+        {secoes.map(([tipo, itens]) => (
+          <section key={tipo} className="rounded-lg bg-white shadow-suave" aria-label={`Modelos de ${tipo}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 px-4 py-3">
+              <h2 className="text-lg font-medium">
+                {tipo} <span className="text-sm font-normal text-tinta-suave">({itens.length} modelo{itens.length === 1 ? '' : 's'})</span>
+              </h2>
+              <button className={btnLaranja} onClick={() => abrirNovo(tipo)}>
+                + {itens.length ? 'Adicionar outro modelo' : 'Adicionar modelo'}
+              </button>
             </div>
-            <ul className="divide-y divide-black/10">
-              {itens.map((p) => (
-                <li key={p.id} className="flex flex-wrap items-center gap-3 p-3 md:flex-nowrap">
-                  <img src={foto(p.foto)} alt="" className="h-14 w-14 shrink-0 rounded-md bg-black/5 object-cover" />
-                  <div className="min-w-0 flex-1 basis-36">
-                    <p className="truncate font-medium">{p.modelo}</p>
-                    <p className="text-sm text-tinta-suave">{p.preco != null ? aPartirDe(p.preco) : 'Sob consulta'}</p>
-                  </div>
-                  <select aria-label={`Status de ${p.modelo}`} value={p.status} onChange={(e) => mudarStatus(p, e.target.value as Status)} className={`min-h-[40px] rounded-full border px-3 text-sm font-medium ${COR_STATUS[p.status]}`}>
-                    {(Object.keys(STATUS_ROTULO) as Status[]).map((x) => <option key={x} value={x}>{STATUS_ROTULO[x]}</option>)}
-                  </select>
-                  <div className="flex gap-2">
-                    <button className={btnLinha} onClick={() => setEditando(p)}>Editar</button>
-                    <button className={btnPerigo} onClick={() => remover(p)}>Apagar</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+
+            {aberto?.tipo === tipo && (
+              <div className="p-4">
+                <FormPeca
+                  key={aberto.peca.id ?? 'novo'}
+                  s={s}
+                  inicial={aberto.peca}
+                  tipoFixo={tipo}
+                  tipos={TIPOS_SUGERIDOS}
+                  fechar={() => setAberto(null)}
+                  salvo={async () => { setAberto(null); await recarregar(); avisar('Modelo salvo!') }}
+                  avisar={avisar}
+                />
+              </div>
+            )}
+
+            {itens.length === 0 && aberto?.tipo !== tipo ? (
+              <p className="p-4 text-sm text-tinta-suave">Nenhum modelo de {tipo.toLowerCase()} ainda. Clique em “Adicionar modelo”.</p>
+            ) : (
+              <ul className="divide-y divide-black/10">
+                {itens.map((p) => (
+                  <li key={p.id} className="flex flex-wrap items-center gap-3 p-3 md:flex-nowrap">
+                    <img src={foto(p.foto)} alt="" className="h-16 w-16 shrink-0 rounded-md bg-black/5 object-cover" />
+                    <div className="min-w-0 flex-1 basis-36">
+                      <p className="truncate font-medium">{p.modelo}</p>
+                      <p className="text-sm text-tinta-suave">{p.preco != null ? aPartirDe(p.preco) : 'Sob consulta'}</p>
+                    </div>
+                    <select aria-label={`Situação de ${p.modelo}`} value={p.status} onChange={(e) => mudarStatus(p, e.target.value as Status)} className={`min-h-[40px] rounded-full border px-3 text-sm font-medium ${COR_STATUS[p.status]}`}>
+                      {(Object.keys(STATUS_ROTULO) as Status[]).map((x) => <option key={x} value={x}>{STATUS_ROTULO[x]}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <button className={btnLinha} onClick={() => setAberto({ tipo, peca: p })}>Editar</button>
+                      <button className={btnPerigo} onClick={() => remover(p)}>Apagar</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         ))}
+
+        <section className="rounded-lg border-2 border-dashed border-black/20 bg-white p-4">
+          <h2 className="font-medium">Outro tipo de peça</h2>
+          <p className="text-sm text-tinta-suave">Precisa de algo além dos itens acima? Ex.: Copo, Tigela, Porta-guardanapo.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input className={`${campo} max-w-xs`} aria-label="Nome do novo tipo de peça" list="tipos-novos" placeholder="Nome do tipo" value={novoTipo} onChange={(e) => setNovoTipo(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); criarTipo() } }} />
+            <datalist id="tipos-novos">{TIPOS_SUGERIDOS.filter((t) => !TIPOS_FIXOS.includes(t)).map((t) => <option key={t} value={t} />)}</datalist>
+            <button className={btnLinha} onClick={criarTipo}>Criar tipo e adicionar modelo</button>
+          </div>
+        </section>
       </div>
     </div>
   )
 }
 
-function FormPeca({ s, inicial, tipos, fechar, salvo, avisar }: { s: Store; inicial: NovaPeca; tipos: string[]; fechar: () => void; salvo: () => Promise<void>; avisar: Comum['avisar'] }) {
+function FormPeca({ s, inicial, tipos, tipoFixo, fechar, salvo, avisar }: { s: Store; inicial: NovaPeca; tipos: string[]; tipoFixo?: string; fechar: () => void; salvo: () => Promise<void>; avisar: Comum['avisar'] }) {
   const [p, setP] = useState<NovaPeca>(inicial)
   const [preco, setPreco] = useState(inicial.preco != null ? String(inicial.preco).replace('.', ',') : '')
   const [gravando, setGravando] = useState(false)
@@ -775,16 +803,16 @@ function FormPeca({ s, inicial, tipos, fechar, salvo, avisar }: { s: Store; inic
   }
 
   return (
-    <form onSubmit={gravar} className="mt-5 rounded-lg border-2 border-indigo/30 bg-white p-5 shadow-suave">
-      <h2 className="font-medium">{inicial.id ? 'Editar peça' : 'Nova peça'}</h2>
+    <form onSubmit={gravar} className="rounded-lg border-2 border-indigo/30 bg-papel/60 p-5">
+      <h3 className="font-medium">{inicial.id ? `Editar modelo de ${p.tipo.toLowerCase()}` : `Novo modelo de ${(tipoFixo ?? p.tipo).toLowerCase() || 'peça'}`}</h3>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <div>
           <label className={rotuloCampo} htmlFor="tp">Tipo</label>
-          <input id="tp" className={campo} list="tipos" value={p.tipo} onChange={(e) => setP({ ...p, tipo: e.target.value })} placeholder="Xícara, Pires, Prato, Bandeja…" required />
+          <input id="tp" className={`${campo} ${tipoFixo ? 'bg-black/5' : ''}`} list="tipos" value={p.tipo} readOnly={Boolean(tipoFixo)} onChange={(e) => setP({ ...p, tipo: e.target.value })} placeholder="Xícara, Pires, Prato, Bandeja…" required />
           <datalist id="tipos">{tipos.map((t) => <option key={t} value={t} />)}</datalist>
         </div>
         <div>
-          <label className={rotuloCampo} htmlFor="md">Nome do modelo</label>
+          <label className={rotuloCampo} htmlFor="md"><span className="text-red-600">*</span> Nome do modelo</label>
           <input id="md" className={campo} value={p.modelo} onChange={(e) => setP({ ...p, modelo: e.target.value })} placeholder="Ex.: Rosas, Passarinhos, Lisa dourada" required />
         </div>
         <div>
@@ -792,9 +820,9 @@ function FormPeca({ s, inicial, tipos, fechar, salvo, avisar }: { s: Store; inic
           <div className="flex items-center gap-2"><span className="text-tinta-suave">R$</span><input id="pp" className={campo} inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="Ex.: 45,00" /></div>
         </div>
         <div>
-          <span className={rotuloCampo}>Foto do modelo</span>
+          <span className={rotuloCampo}>Foto do modelo <span className="font-normal text-tinta-suave">(o cliente vê esta foto)</span></span>
           <div className="flex items-center gap-3">
-            {p.foto && <img src={foto(p.foto)} alt="" className="h-16 w-16 rounded-md object-cover" />}
+            {p.foto && <img src={foto(p.foto)} alt="Foto do modelo" className="h-20 w-20 rounded-md object-cover" />}
             <button type="button" className={btnLinha} onClick={() => input.current?.click()}>{enviando ? 'Enviando…' : p.foto ? 'Trocar foto' : 'Escolher foto'}</button>
             {p.foto && <button type="button" className={btnPerigo} onClick={() => setP({ ...p, foto: null })}>Tirar</button>}
             <input ref={input} type="file" accept="image/*" hidden onChange={async (e) => { const u = await enviar(e.target.files ?? []); if (u[0]) setP((x) => ({ ...x, foto: u[0] })); e.target.value = '' }} />
