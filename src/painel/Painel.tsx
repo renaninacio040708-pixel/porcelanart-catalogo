@@ -22,8 +22,53 @@ type Aba = 'geral' | 'produtos' | 'pecas'
 const SUGESTOES_CATEGORIA = ['Xícaras', 'Canecas', 'Pratos', 'Bandejas', 'Boleiras', 'Bules', 'Kits', 'Decoração', 'Infantil']
 const MAX_FOTOS = 9
 
+const TEMA = 'pa_painel_tema'
+
+/** Modo escuro do painel: guarda a escolha no aparelho; sem escolha, segue o tema do celular/computador. */
+function useTema() {
+  const [escuro, setEscuro] = useState(() => {
+    try {
+      const v = localStorage.getItem(TEMA)
+      if (v) return v === 'escuro'
+    } catch {
+      /* sem armazenamento */
+    }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+  useEffect(() => {
+    document.documentElement.classList.toggle('painel-escuro', escuro)
+    return () => document.documentElement.classList.remove('painel-escuro')
+  }, [escuro])
+  const alternar = () =>
+    setEscuro((v) => {
+      try {
+        localStorage.setItem(TEMA, v ? 'claro' : 'escuro')
+      } catch {
+        /* sem armazenamento */
+      }
+      return !v
+    })
+  return { escuro, alternar }
+}
+
+function BotaoTema({ escuro, alternar, className = '' }: { escuro: boolean; alternar: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={alternar}
+      aria-pressed={escuro}
+      aria-label={escuro ? 'Mudar para o modo claro' : 'Mudar para o modo escuro'}
+      title={escuro ? 'Modo claro' : 'Modo escuro'}
+      className={`grid h-10 w-10 place-items-center rounded-md text-lg hover:bg-white/10 ${className}`}
+    >
+      {escuro ? '☀' : '☾'}
+    </button>
+  )
+}
+
 export default function Painel() {
   const [sessao, setSessao] = useState<string | null | undefined>(undefined)
+  const tema = useTema()
 
   useEffect(() => {
     document.title = 'Central do Vendedor — PorcelanArt'
@@ -41,12 +86,12 @@ export default function Painel() {
       </div>
     )
   if (sessao === undefined) return <p className="p-10 text-center text-tinta-suave">Carregando…</p>
-  if (!sessao) return <Login s={store} aoEntrar={setSessao} />
-  return <Central s={store} email={sessao} aoSair={() => setSessao(null)} />
+  if (!sessao) return <Login s={store} aoEntrar={setSessao} tema={tema} />
+  return <Central s={store} email={sessao} aoSair={() => setSessao(null)} tema={tema} />
 }
 
 // ---------------------------------------------------------------- login
-function Login({ s, aoEntrar }: { s: Store; aoEntrar: (email: string) => void }) {
+function Login({ s, aoEntrar, tema }: { s: Store; aoEntrar: (email: string) => void; tema: { escuro: boolean; alternar: () => void } }) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
@@ -68,7 +113,8 @@ function Login({ s, aoEntrar }: { s: Store; aoEntrar: (email: string) => void })
 
   return (
     <div className="grid min-h-screen place-items-center bg-[#f5f5f5] px-5">
-      <form onSubmit={enviar} className="w-full max-w-sm rounded-lg bg-white p-8 shadow-suave">
+      <form onSubmit={enviar} className="relative w-full max-w-sm rounded-lg bg-white p-8 shadow-suave">
+        <BotaoTema escuro={tema.escuro} alternar={tema.alternar} className="absolute right-3 top-3 !text-tinta hover:!bg-black/5" />
         <p className="titulo text-4xl">PorcelanArt</p>
         <h1 className="mt-1 text-lg font-medium text-tinta">Central do Vendedor</h1>
         {s.demo && <p className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">Modo demonstração: os dados ficam só neste navegador. Qualquer e-mail entra.</p>}
@@ -85,7 +131,7 @@ function Login({ s, aoEntrar }: { s: Store; aoEntrar: (email: string) => void })
 }
 
 // ---------------------------------------------------------------- estrutura geral
-function Central({ s, email, aoSair }: { s: Store; email: string; aoSair: () => void }) {
+function Central({ s, email, aoSair, tema }: { s: Store; email: string; aoSair: () => void; tema: { escuro: boolean; alternar: () => void } }) {
   const [aba, setAba] = useState<Aba>('geral')
   const [filtroProdutos, setFiltroProdutos] = useState<Filtro>('todos')
   const [kits, setKits] = useState<Produto[] | null>(null)
@@ -130,6 +176,7 @@ function Central({ s, email, aoSair }: { s: Store; email: string; aoSair: () => 
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden max-w-[220px] truncate text-white/80 sm:inline">{email}</span>
+          <BotaoTema escuro={tema.escuro} alternar={tema.alternar} />
           <Link to="/" target="_blank" className="rounded-md px-3 py-2 hover:bg-white/10">Ver site</Link>
           <button className="rounded-md bg-white/15 px-3 py-2 hover:bg-white/25" onClick={async () => { await s.sair(); aoSair() }}>Sair</button>
         </div>

@@ -74,7 +74,8 @@ function inicial(): Dados {
 
 export function CatalogoProvider({ children }: { children: React.ReactNode }) {
   const [dados, setDados] = useState<Dados>(inicial)
-  const [carregando, setCarregando] = useState(supabaseConfigurado && !dados.kits)
+  // false até a primeira resposta do banco (mesmo com cache), para não mostrar "peça não encontrada" de um produto novo
+  const [carregando, setCarregando] = useState(supabaseConfigurado)
 
   useEffect(() => {
     if (!supabaseConfigurado) return
@@ -101,7 +102,9 @@ export function CatalogoProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const valor = useMemo<Catalogo>(() => {
-    const produtos = (dados.kits && dados.kits.length ? dados.kits : produtosEstaticos).filter((p) => p.status !== 'oculto')
+    // sem cache e ainda buscando: lista vazia (evita piscar o catálogo antigo do código)
+    const base = dados.kits && dados.kits.length ? dados.kits : carregando ? [] : produtosEstaticos
+    const produtos = base.filter((p) => p.status !== 'oculto')
     const pecasBrutas = dados.pecas && dados.pecas.length ? dados.pecas : PECAS_PADRAO
     const pecas = pecasBrutas.filter((p) => p.status !== 'oculto')
     const usadas = [...new Set(produtos.map((p) => p.categoria))]
@@ -110,7 +113,7 @@ export function CatalogoProvider({ children }: { children: React.ReactNode }) {
       produtos,
       pecas,
       categorias,
-      carregando: carregando && !dados.kits,
+      carregando,
       achar: (slug) => produtos.find((p) => p.slug === slug),
     }
   }, [dados, carregando])

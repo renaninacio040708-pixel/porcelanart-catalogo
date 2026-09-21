@@ -103,3 +103,13 @@ body {
 .sem-barra::-webkit-scrollbar {
   display: none;
 }
+
+/* Modo escuro do painel: inverte as cores da página e desfaz a inversão nas fotos. */
+html.painel-escuro {
+  filter: invert(1) hue-rotate(180deg);
+  background: #fff;
+}
+html.painel-escuro img,
+html.painel-escuro video {
+  filter: invert(1) hue-rotate(180deg);
+}

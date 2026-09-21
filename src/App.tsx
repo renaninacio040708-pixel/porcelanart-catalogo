@@ -320,7 +320,7 @@ function Colecao() {
             </button>
           ))}
         </div>
-        {carregando && <p className="mt-10 text-center text-indigo" role="status">Carregando as peças…</p>}
+        {carregando && !produtos.length && <p className="mt-10 text-center text-indigo" role="status">Carregando as peças…</p>}
         <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3">
           {lista.map((p, i) => (
             <Card key={p.slug} p={p} i={i} sobreLaranja />
