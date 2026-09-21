@@ -83,10 +83,17 @@ export default function Montar() {
         Marque a quantidade de cada modelo. Os valores são o <b>preço base</b> (“a partir de”): o valor final depende da personalização — inicial em ouro, tema, cores — e é combinado no WhatsApp.
       </p>
 
+      {grupos.length === 0 && (
+        <div className="mt-10 rounded-lg bg-white p-6 shadow-suave">
+          <p className="text-[17px] text-tinta-suave">Estamos preparando as peças para você montar o seu kit. Enquanto isso, conte pelo WhatsApp o que você imagina e a gente monta junto.</p>
+          <a className="btn btn-cheio mt-5" href={linkZap('Olá! Quero montar o meu próprio kit de porcelana.')} target="_blank" rel="noreferrer" title="Abre em nova aba">Chamar no WhatsApp</a>
+        </div>
+      )}
+
       <div className="mt-10 space-y-10">
         {grupos.map(([tipo, itens]) => (
-          <section key={tipo} aria-labelledby={`g-${tipo}`}>
-            <h2 id={`g-${tipo}`} className="titulo text-[36px]">{tipo}</h2>
+          <section key={tipo} aria-labelledby={`g-${tipo.replace(/\W+/g, '-')}`}>
+            <h2 id={`g-${tipo.replace(/\W+/g, '-')}`} className="titulo text-[36px]">{tipo}</h2>
             <ul className="mt-3 grid gap-3 md:grid-cols-2">
               {itens.map((p) => (
                 <Passo key={p.id} peca={p} qtd={qtd[p.id] ?? 0} mudar={(d) => setQtd((q) => ({ ...q, [p.id]: Math.min(99, Math.max(0, (q[p.id] ?? 0) + d)) }))} />

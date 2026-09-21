@@ -14,7 +14,7 @@ export const CATEGORIAS_BASE = [
 ]
 
 export type Status = 'ativo' | 'esgotado' | 'oculto'
-export const STATUS_ROTULO: Record<Status, string> = { ativo: 'No ar', esgotado: 'Esgotado', oculto: 'Oculto' }
+export const STATUS_ROTULO: Record<Status, string> = { ativo: 'Vendendo', esgotado: 'Sem estoque', oculto: 'Escondido' }
 
 /** ex.: { nome: 'Cor', opcoes: ['Rosa', 'Azul'] } */
 export type Variacao = { nome: string; opcoes: string[] }

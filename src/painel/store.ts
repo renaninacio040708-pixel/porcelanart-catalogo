@@ -95,10 +95,12 @@ const supabaseStore: Store = {
     return linhas[0] as Produto
   },
   async removerKit(id) {
-    checa(await (await cliente()).from('kits').delete().eq('id', id).select())
+    const l = checa(await (await cliente()).from('kits').delete().eq('id', id).select())
+    if (!l.length) throw new Error('permissão negada ou produto não encontrado')
   },
   async statusKit(id, s) {
-    checa(await (await cliente()).from('kits').update({ status: s }).eq('id', id).select())
+    const l = checa(await (await cliente()).from('kits').update({ status: s }).eq('id', id).select())
+    if (!l.length) throw new Error('permissão negada ou produto não encontrado')
   },
   async listarPecas() {
     const db = await cliente()
@@ -111,7 +113,8 @@ const supabaseStore: Store = {
     return checa(await q.select())[0] as Peca
   },
   async removerPeca(id) {
-    checa(await (await cliente()).from('pecas').delete().eq('id', id).select())
+    const l = checa(await (await cliente()).from('pecas').delete().eq('id', id).select())
+    if (!l.length) throw new Error('permissão negada ou peça não encontrada')
   },
   async enviarFoto(arquivo) {
     const db = await cliente()
@@ -192,4 +195,5 @@ const demoStore: Store = {
 }
 
 /** Supabase se estiver configurado; demonstração local só no desenvolvimento (ou com ?demo). */
-export const store: Store | null = supabaseConfigurado ? supabaseStore : import.meta.env.DEV ? demoStore : null
+const pedidoDemo = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('demo')
+export const store: Store | null = pedidoDemo ? demoStore : supabaseConfigurado ? supabaseStore : import.meta.env.DEV ? demoStore : null
