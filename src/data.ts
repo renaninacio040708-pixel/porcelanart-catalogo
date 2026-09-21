@@ -2,8 +2,8 @@
 export const WHATSAPP = '5511992299621'
 export const INSTAGRAM = 'porcelanart.atelie'
 
-export const categorias = [
-  'Todas',
+/** ordem preferida das categorias; categorias novas criadas no painel entram depois */
+export const CATEGORIAS_BASE = [
   'Xícaras e canecas',
   'Kits e conjuntos',
   'Pratos e bandejas',
@@ -11,8 +11,13 @@ export const categorias = [
   'Boleiras e mesa',
   'Bebê e infantil',
   'Decoração e sacras',
-] as const
-export type Categoria = (typeof categorias)[number]
+]
+
+export type Status = 'ativo' | 'esgotado' | 'oculto'
+export const STATUS_ROTULO: Record<Status, string> = { ativo: 'No ar', esgotado: 'Esgotado', oculto: 'Oculto' }
+
+/** ex.: { nome: 'Cor', opcoes: ['Rosa', 'Azul'] } */
+export type Variacao = { nome: string; opcoes: string[] }
 
 /** número = foto-N.webp enviada pelo usuário; string = foto do Instagram (ig/CODIGO_N) */
 export type Foto = number | string
@@ -20,13 +25,46 @@ export type Foto = number | string
 export type Produto = {
   slug: string
   nome: string
-  categoria: Exclude<Categoria, 'Todas'>
+  categoria: string
   resumo: string
   descricao: string
   detalhes: string[]
   /** fotos de exemplos de peças já feitas */
   fotos: Foto[]
+  /** vindos do painel; ausentes no catálogo estático */
+  id?: string
+  status?: Status
+  variacoes?: Variacao[]
+  ordem?: number
+  /** preço base: sempre exibido como "a partir de" (o valor final depende da personalização) */
+  preco?: number | null
 }
+
+/** peça avulsa do "Montar meu próprio kit" */
+export type Peca = {
+  id: string
+  tipo: string
+  modelo: string
+  preco: number | null
+  foto: string | null
+  status: Status
+  ordem: number
+}
+
+/** usado enquanto a sua mãe ainda não cadastrou peças no painel (sem preço = sob consulta) */
+export const PECAS_PADRAO: Peca[] = ['Xícara', 'Pires', 'Prato', 'Bandeja', 'Caneca', 'Bule'].map((tipo, i) => ({
+  id: `padrao-${i}`,
+  tipo,
+  modelo: `${tipo} personalizada(o)`,
+  preco: null,
+  foto: null,
+  status: 'ativo',
+  ordem: i,
+}))
+
+export const aPartirDe = (n: number) => `a partir de ${brl(n)}`
+export const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
 
 const ig = (code: string, ...n: number[]): string[] => n.map((i) => `ig/${code}_${i}`)
 
@@ -254,14 +292,20 @@ export const produtos: Produto[] = [
   },
 ]
 
-export const foto = (f: Foto) => (typeof f === 'number' ? `/img/foto-${f}.webp` : `/img/${f}.webp`)
+export const SEM_FOTO = '/img/sem-foto.svg'
+export const foto = (f?: Foto | null) =>
+  f === undefined || f === null || f === '' ? SEM_FOTO : typeof f === 'number' ? `/img/foto-${f}.webp` : /^(https?:|data:|\/)/.test(f) ? f : `/img/${f}.webp`
 /** versão pequena (480px) para cards e miniaturas */
-export const fotoP = (f: Foto) => foto(f).replace('.webp', '-s.webp')
+export const fotoP = (f?: Foto | null) => {
+  const u = foto(f)
+  return u.startsWith('/img/') && u.endsWith('.webp') ? u.replace('.webp', '-s.webp') : u
+}
 // galerias enxutas: sem repetição e no máximo 8 fotos por peça
 for (const p of produtos) p.fotos = [...new Set(p.fotos)].slice(0, 8)
 
-export const achar = (slug?: string) => produtos.find((p) => p.slug === slug)
 
 export const linkZap = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`
-export const msgProduto = (nome: string) =>
-  `Olá! Me interessei por "${nome}" e quero personalizar a minha.`
+export const msgProduto = (nome: string, escolhas: Record<string, string> = {}) => {
+  const extra = Object.entries(escolhas).map(([k, v]) => `${k}: ${v}`).join('; ')
+  return `Olá! Me interessei por "${nome}"${extra ? ` (${extra})` : ''} e quero personalizar a minha.`
+}

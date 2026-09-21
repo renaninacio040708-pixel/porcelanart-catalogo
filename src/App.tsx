@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react'
 import { Blob, Margarida, Onda, Sprig, Xicara } from './Decor'
 import {
   INSTAGRAM,
-  achar,
-  categorias,
   foto,
   fotoP,
   linkZap,
   msgProduto,
-  produtos,
-  type Categoria,
+  aPartirDe,
   type Produto,
 } from './data'
+import { useCatalogo } from './catalogo'
+
+const Painel = lazy(() => import('./painel/Painel'))
+const Montar = lazy(() => import('./Montar'))
 
 const ease = [0.22, 1, 0.36, 1] as const
 const MSG_GERAL = 'Olá! Vim pelo site da PorcelanArt e quero personalizar a minha peça.'
@@ -138,6 +139,7 @@ function Header() {
   }, [aberto])
   const links = [
     { to: '/#colecao', t: 'A coleção' },
+    { to: '/montar-kit', t: 'Montar meu kit' },
     { to: '/#encomenda', t: 'Como encomendar' },
     { to: '/#sobre', t: 'O ateliê' },
   ]
@@ -264,7 +266,8 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
   return (
     <Reveal from="scale" delay={(i % 3) * 0.08} className="h-full">
       <Link to={`/peca/${p.slug}`} className={`group flex h-full flex-col overflow-hidden rounded-lg bg-white ${sobreLaranja ? 'shadow-cartao' : 'shadow-suave'}`}>
-        <div className="overflow-hidden bg-papel">
+        <div className="relative overflow-hidden bg-papel">
+          {p.status === 'esgotado' && <span className="rotulo absolute left-2 top-2 z-10 rounded-full bg-tinta px-3 py-1 text-[11px] text-white">Esgotado</span>}
           <img
             src={foto(p.fotos[0])}
             srcSet={`${fotoP(p.fotos[0])} 480w, ${foto(p.fotos[0])} 1200w`}
@@ -278,6 +281,7 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
           <p className="rotulo hidden text-[11px] text-tinta-suave sm:block sm:tracking-[0.22em]">{p.categoria}</p>
           <h3 className="titulo text-[22px] leading-none sm:mt-2 sm:text-[30px]">{p.nome}</h3>
           <p className="mt-2 hidden text-[15px] leading-relaxed text-tinta-suave sm:block">{p.resumo}</p>
+          {p.preco != null && <p className="mt-2 text-sm font-medium text-indigo">{aPartirDe(p.preco)}</p>}
           <span className="rotulo mt-auto inline-block self-start border-b border-indigo pb-0.5 pt-3 text-[11px] text-indigo sm:pt-4 sm:pb-1 sm:text-[12px]">Ver detalhes</span>
         </div>
       </Link>
@@ -286,10 +290,13 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
 }
 
 function Colecao() {
-  const [cat, setCat] = useState<Categoria>('Todas')
+  const { produtos, categorias: cats, carregando } = useCatalogo()
+  const [cat, setCat] = useState('Todas')
   const [todas, setTodas] = useState(false)
-  const filtrada = cat === 'Todas' ? produtos : produtos.filter((p) => p.categoria === cat)
-  const lista = cat === 'Todas' && !todas ? filtrada.slice(0, 9) : filtrada
+  const categorias = ['Todas', ...cats]
+  const catAtiva = categorias.includes(cat) ? cat : 'Todas'
+  const filtrada = catAtiva === 'Todas' ? produtos : produtos.filter((p) => p.categoria === catAtiva)
+  const lista = catAtiva === 'Todas' && !todas ? filtrada.slice(0, 9) : filtrada
   return (
     <section id="colecao" className="relative overflow-hidden bg-laranja">
       <Drift className="pointer-events-none absolute -right-6 top-6 hidden lg:block" from={-30} to={90} rot={[-4, 8]}><Xicara className="h-40" color="#fff" /></Drift>
@@ -304,21 +311,22 @@ function Colecao() {
             <button
               key={c}
               onClick={() => setCat(c)}
-              aria-pressed={cat === c}
+              aria-pressed={catAtiva === c}
               className={`rotulo min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-full px-6 py-2.5 transition-colors ${
-                cat === c ? 'bg-indigo text-white' : 'bg-white text-indigo hover:bg-papel'
+                catAtiva === c ? 'bg-indigo text-white' : 'bg-white text-indigo hover:bg-papel'
               }`}
             >
               {c}
             </button>
           ))}
         </div>
+        {carregando && <p className="mt-10 text-center text-indigo" role="status">Carregando as peças…</p>}
         <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3">
           {lista.map((p, i) => (
             <Card key={p.slug} p={p} i={i} sobreLaranja />
           ))}
         </div>
-        {cat === 'Todas' && !todas && filtrada.length > 9 && (
+        {catAtiva === 'Todas' && !todas && filtrada.length > 9 && (
           <div className="mt-12 text-center">
             <button onClick={() => setTodas(true)} className="btn btn-cheio">
               Ver todas as {filtrada.length} peças
@@ -327,6 +335,17 @@ function Colecao() {
         )}
       </div>
       <Onda fill="#fbf9f6" />
+    </section>
+  )
+}
+
+function MontarChamada() {
+  return (
+    <section className="mx-auto max-w-[1000px] px-5 pb-6 pt-14 text-center md:pt-20">
+      <h2 className="titulo text-[clamp(2.75rem,7vw,4.5rem)]">Monte o seu próprio kit</h2>
+      <p className="script mt-1 text-4xl">quantas xícaras, pires, pratos e bandejas você quiser</p>
+      <p className="mx-auto mt-4 max-w-xl text-[17px] leading-relaxed text-tinta-suave">Escolha os modelos, veja a estimativa “a partir de” e envie a lista pronta pelo WhatsApp.</p>
+      <Link to="/montar-kit" className="btn btn-cheio mt-8">Montar meu kit</Link>
     </section>
   )
 }
@@ -430,6 +449,7 @@ function Home() {
     <>
       <Hero />
       <Colecao />
+      <MontarChamada />
       <Passos />
       <Sobre />
     </>
@@ -438,7 +458,10 @@ function Home() {
 
 function Peca() {
   const { slug } = useParams()
+  const { achar, produtos, carregando } = useCatalogo()
   const p = achar(slug)
+  const [escolhas, setEscolhas] = useState<Record<string, string>>({})
+  useEffect(() => setEscolhas({}), [slug])
   const [atual, setAtual] = useState(0)
   const faixa = useRef<HTMLDivElement>(null)
   const total = p?.fotos.length ?? 0
@@ -464,6 +487,7 @@ function Peca() {
     setAtual(0)
   }, [slug])
 
+  if (!p && carregando) return <p className="py-32 text-center text-indigo" role="status">Carregando…</p>
   if (!p)
     return (
       <div className="mx-auto max-w-xl px-5 py-32 text-center">
@@ -474,6 +498,9 @@ function Peca() {
       </div>
     )
 
+  const variacoes = p.variacoes ?? []
+  const faltam = variacoes.filter((v) => !escolhas[v.nome])
+  const esgotado = p.status === 'esgotado'
   const relacionados = produtos.filter((x) => x.slug !== p.slug && x.categoria === p.categoria).concat(produtos.filter((x) => x.slug !== p.slug && x.categoria !== p.categoria)).slice(0, 3)
   return (
     <>
@@ -560,10 +587,49 @@ function Peca() {
               </li>
             ))}
           </ul>
-          <a href={linkZap(msgProduto(p.nome))} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-cheio mt-10 w-full sm:w-auto">
-            <ZapIcon /> Quero personalizar a minha
-          </a>
-          <p className="mt-4 text-sm text-tinta-suave">Os valores são combinados na conversa — cada peça é feita sob medida para você.</p>
+          {p.preco != null && <p className="mt-6 text-2xl font-medium text-indigo">{aPartirDe(p.preco)}</p>}
+          {variacoes.map((v) => (
+            <fieldset key={v.nome} className="mt-6">
+              <legend className="rotulo mb-2 text-tinta-suave">{v.nome}</legend>
+              <div className="flex flex-wrap gap-2">
+                {v.opcoes.map((o) => (
+                  <button
+                    key={o}
+                    type="button"
+                    aria-pressed={escolhas[v.nome] === o}
+                    onClick={() => setEscolhas((e) => ({ ...e, [v.nome]: o }))}
+                    className={`min-h-[44px] rounded-full border px-5 text-[15px] transition-colors ${escolhas[v.nome] === o ? 'border-indigo bg-indigo text-white' : 'border-indigo/40 text-indigo hover:bg-indigo/5'}`}
+                  >
+                    {o}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+          {esgotado ? (
+            <div className="mt-8 rounded-lg border border-[#b4470a]/40 bg-[#b4470a]/5 p-4">
+              <p className="font-medium text-[#8a3606]">Esgotado no momento</p>
+              <a href={linkZap(`Olá! Vi que "${p.nome}" está esgotado. Podem me avisar quando voltar ou sugerir algo parecido?`)} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-vazado mt-3 w-full sm:w-auto">
+                <ZapIcon /> Perguntar quando volta
+              </a>
+            </div>
+          ) : (
+            <>
+              <a
+                href={faltam.length ? undefined : linkZap(msgProduto(p.nome, escolhas))}
+                aria-disabled={faltam.length > 0}
+                onClick={(e) => faltam.length && e.preventDefault()}
+                target="_blank"
+                title="Abre em nova aba"
+                rel="noreferrer"
+                className={`btn btn-cheio mt-10 w-full sm:w-auto ${faltam.length ? 'pointer-events-none opacity-40' : ''}`}
+              >
+                <ZapIcon /> Quero personalizar a minha
+              </a>
+              {faltam.length > 0 && <p className="mt-3 text-sm text-[#8a3606]">Escolha: {faltam.map((v) => v.nome).join(', ')}</p>}
+            </>
+          )}
+          <p className="mt-4 text-sm text-tinta-suave">O valor final é combinado na conversa — depende da personalização.</p>
           <p className="mt-2 text-sm text-tinta-suave">As fotos são exemplos de peças já feitas; a sua pode ter outras cores, temas e inicial.</p>
         </div>
       </section>
@@ -582,21 +648,26 @@ function Peca() {
 }
 
 export default function App() {
+  const emPainel = useLocation().pathname.startsWith('/painel')
   return (
     <>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-indigo focus:px-5 focus:py-3 focus:text-white">
         Pular para o conteúdo
       </a>
-      <ScrollProgress />
-      <Header />
+      {!emPainel && <ScrollProgress />}
+      {!emPainel && <Header />}
       <main id="conteudo">
+        <Suspense fallback={<p className="py-32 text-center text-indigo" role="status">Carregando…</p>}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/montar-kit" element={<Montar />} />
+          <Route path="/painel" element={<Painel />} />
           <Route path="/peca/:slug" element={<Peca />} />
           <Route path="*" element={<Peca />} />
         </Routes>
+        </Suspense>
       </main>
-      <Rodape />
+      {!emPainel && <Rodape />}
     </>
   )
 }
