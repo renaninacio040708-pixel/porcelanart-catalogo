@@ -436,6 +436,43 @@ function Sobre() {
   )
 }
 
+// Comentários reais de clientes, publicados por elas mesmas no Instagram @porcelanart.atelie.
+const DEPOIMENTOS = [
+  { texto: 'Obrigada amiga! Meus bebês são perfeitas.', nome: 'Dani', de: 'cliente, recebeu um kit de canecas para a clínica', post: 'C9DXfF6x9JA' },
+  { texto: 'Amo cada detalhe da minha caneca. Todo dia um café maravilhoso com a minha PorcelanArt.', nome: 'Mileny', de: 'cliente', post: 'DEyGjIwxo_e' },
+  { texto: 'Eu amo a minha!', nome: 'Luciana', de: 'cliente', post: 'DEyGjIwxo_e' },
+] as const
+
+function Depoimentos() {
+  return (
+    <section className="bg-indigo py-16 md:py-24" aria-labelledby="depoimentos-titulo">
+      <div className="mx-auto max-w-[1200px] px-5">
+        <Reveal className="text-center">
+          <h2 id="depoimentos-titulo" className="titulo !text-white text-[clamp(2.75rem,7vw,4.5rem)]">Quem já tem uma peça conta</h2>
+          <p className="script mt-1 !text-mel text-4xl">comentários de verdade, direto do Instagram</p>
+        </Reveal>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {DEPOIMENTOS.map((d, i) => (
+            <Reveal key={d.nome} delay={i * 0.08} from="scale">
+              <a
+                href={`https://instagram.com/p/${d.post}`}
+                target="_blank"
+                rel="noreferrer"
+                title="Ver o comentário original no Instagram (abre em nova aba)"
+                className="block h-full rounded-lg bg-white p-6 shadow-cartao transition-transform hover:-translate-y-1"
+              >
+                <span aria-hidden="true" className="script text-5xl leading-none text-laranja">“</span>
+                <p className="-mt-2 text-[17px] leading-relaxed text-tinta">{d.texto}</p>
+                <p className="rotulo mt-4 text-indigo">{d.nome} <span className="font-sans normal-case tracking-normal text-tinta-suave">· {d.de}</span></p>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Rodape() {
   return (
     <footer className="bg-indigo text-white">
@@ -473,6 +510,7 @@ function Home() {
       <MontarChamada />
       <Passos />
       <Sobre />
+      <Depoimentos />
     </>
   )
 }
