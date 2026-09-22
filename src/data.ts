@@ -1,4 +1,7 @@
 // Número do WhatsApp da PorcelanArt (formato internacional, só dígitos). Trocar aqui se mudar.
+/** remove acento/caixa para comparar texto digitado por gente (categorias, busca, tipos) */
+export const norm = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
 export const WHATSAPP = '5511992299621'
 export const INSTAGRAM = 'porcelanart.atelie'
 

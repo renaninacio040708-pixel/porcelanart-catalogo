@@ -516,14 +516,19 @@ function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comu
   const [ocupado, setOcupado] = useState(false)
 
   const st = (k: Produto) => (k.status ?? 'ativo') as Status
-  const cats = useMemo(() => [...new Set((kits ?? []).map((k) => k.categoria))], [kits])
+  // agrupa grafias diferentes da mesma categoria (Kits / kits) numa só entrada
+  const cats = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const k of kits ?? []) if (!m.has(norm(k.categoria))) m.set(norm(k.categoria), k.categoria)
+    return [...m.values()]
+  }, [kits])
 
   const lista = useMemo(() => {
     const b = norm(busca)
     const l = (kits ?? []).filter(
       (k) =>
         (filtro === 'todos' || (filtro === 'pendencias' ? !qualidade(k).ok : st(k) === filtro)) &&
-        (!cat || k.categoria === cat) &&
+        (!cat || norm(k.categoria) === norm(cat)) &&
         (!b || norm(k.nome).includes(b) || norm(k.categoria).includes(b)),
     )
     const peso: Record<Status, number> = { ativo: 0, esgotado: 1, oculto: 2 }
@@ -810,6 +815,28 @@ function FormProduto({ s, inicial, existentes, fechar, salvo, avisar }: { s: Sto
     return { ...x, fotos: f }
   })
 
+  // arrastar para reordenar: toca e segura numa foto, arrasta por cima das outras
+  const [arrastando, setArrastando] = useState<number | null>(null)
+  const aoPointerDown = (i: number) => (e: React.PointerEvent) => {
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    setArrastando(i)
+  }
+  const aoPointerMove = (e: React.PointerEvent) => {
+    if (arrastando === null) return
+    const alvo = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest<HTMLElement>('[data-foto-i]')
+    if (!alvo) return
+    const j = Number(alvo.dataset.fotoI)
+    if (Number.isNaN(j) || j === arrastando) return
+    setP((x) => {
+      const f = [...x.fotos]
+      const [item] = f.splice(arrastando, 1)
+      f.splice(j, 0, item)
+      return { ...x, fotos: f }
+    })
+    setArrastando(j)
+  }
+  const aoPointerUp = () => setArrastando(null)
+
   const addFotos = async (l: FileList | null) => {
     if (!l?.length) return
     const vagas = MAX_FOTOS - p.fotos.length
@@ -904,13 +931,17 @@ function FormProduto({ s, inicial, existentes, fechar, salvo, avisar }: { s: Sto
           <section className="rounded-xl bg-white p-5 shadow-suave">
             <h2 className="text-lg font-medium">Fotos</h2>
             <p className={ajuda}>Até {MAX_FOTOS} fotos quadradas. A primeira é a capa que aparece na vitrine.</p>
-            <div className="mt-3 flex flex-wrap gap-4">
+            <p className={ajuda}>Toque e segure uma foto para arrastá-la para outra posição, ou use as setas.</p>
+            <div className="mt-3 flex flex-wrap gap-4" onPointerMove={aoPointerMove} onPointerUp={aoPointerUp} onPointerCancel={aoPointerUp}>
               {p.fotos.map((f, i) => (
-                <div key={String(f) + i} className="w-32">
-                  <div className="relative overflow-hidden rounded-lg border border-black/15">
-                    <img src={foto(f)} alt={`Foto ${i + 1}`} className="aspect-square w-32 bg-black/5 object-cover" />
+                <div key={String(f) + i} data-foto-i={i} className={`w-32 transition-transform ${arrastando === i ? 'scale-95 opacity-70' : ''}`}>
+                  <div
+                    className="relative touch-none overflow-hidden rounded-lg border border-black/15 active:cursor-grabbing"
+                    onPointerDown={aoPointerDown(i)}
+                  >
+                    <img src={foto(f)} alt={`Foto ${i + 1}`} draggable={false} className="aspect-square w-32 bg-black/5 object-cover" />
                     {i === 0 && <span className="absolute inset-x-0 bottom-0 bg-black/65 py-1 text-center text-sm text-white">Capa</span>}
-                    <button type="button" aria-label={`Tirar a foto ${i + 1}`} className="absolute right-1 top-1 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white active:bg-black" onClick={() => set('fotos', p.fotos.filter((_, k) => k !== i))}>✕</button>
+                    <button type="button" aria-label={`Tirar a foto ${i + 1}`} className="absolute right-1 top-1 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white active:bg-black" onPointerDown={(e) => e.stopPropagation()} onClick={() => set('fotos', p.fotos.filter((_, k) => k !== i))}>✕</button>
                   </div>
                   <div className="mt-2 flex gap-2">
                     <button type="button" className="min-h-[44px] flex-1 rounded-lg border border-black/25 text-lg disabled:opacity-30 active:bg-black/10" aria-label="Mover para trás" disabled={i === 0} onClick={() => mover(i, -1)}>←</button>

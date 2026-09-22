@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigurado } from './config'
-import { CATEGORIAS_BASE, PECAS_PADRAO, produtos as produtosEstaticos, type Peca, type Produto, type Status } from './data'
+import { CATEGORIAS_BASE, PECAS_PADRAO, norm, produtos as produtosEstaticos, type Peca, type Produto, type Status } from './data'
 
 /** Dados do catálogo público: vêm do painel (Supabase) e, se não houver, do catálogo estático do código. */
 type Catalogo = {
@@ -105,7 +105,15 @@ export function CatalogoProvider({ children }: { children: React.ReactNode }) {
     // sem cache e ainda buscando: lista vazia (evita piscar o catálogo antigo do código)
     // banco respondeu (mesmo vazio) = ele manda; catálogo do código só se o banco nunca respondeu
     const base = dados.kits ? dados.kits : carregando ? [] : produtosEstaticos
-    const produtos = base.filter((p) => p.status !== 'oculto')
+    const semOcultos = base.filter((p) => p.status !== 'oculto')
+
+    // categorias digitadas com grafias diferentes (Kits / kits / Kits e conjuntos) viram uma só —
+    // a primeira grafia encontrada (ou a da lista padrão, se bater) é a exibida.
+    const canonico = new Map<string, string>()
+    for (const c of CATEGORIAS_BASE) canonico.set(norm(c), c)
+    for (const p of semOcultos) if (!canonico.has(norm(p.categoria))) canonico.set(norm(p.categoria), p.categoria)
+    const produtos = semOcultos.map((p) => ({ ...p, categoria: canonico.get(norm(p.categoria))! }))
+
     const pecasBrutas = dados.pecas ? dados.pecas : carregando ? [] : PECAS_PADRAO
     const pecas = pecasBrutas.filter((p) => p.status !== 'oculto')
     const usadas = [...new Set(produtos.map((p) => p.categoria))]

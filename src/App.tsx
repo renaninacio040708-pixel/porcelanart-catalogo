@@ -9,6 +9,7 @@ import {
   linkZap,
   msgProduto,
   aPartirDe,
+  norm,
   type Produto,
 } from './data'
 import { useCatalogo } from './catalogo'
@@ -292,11 +293,14 @@ function Card({ p, i, sobreLaranja = false }: { p: Produto; i: number; sobreLara
 function Colecao() {
   const { produtos, categorias: cats, carregando } = useCatalogo()
   const [cat, setCat] = useState('Todas')
+  const [busca, setBusca] = useState('')
   const [todas, setTodas] = useState(false)
   const categorias = ['Todas', ...cats]
   const catAtiva = categorias.includes(cat) ? cat : 'Todas'
-  const filtrada = catAtiva === 'Todas' ? produtos : produtos.filter((p) => p.categoria === catAtiva)
-  const lista = catAtiva === 'Todas' && !todas ? filtrada.slice(0, 9) : filtrada
+  const porCategoria = catAtiva === 'Todas' ? produtos : produtos.filter((p) => p.categoria === catAtiva)
+  const b = norm(busca)
+  const filtrada = !b ? porCategoria : porCategoria.filter((p) => norm(p.nome).includes(b) || norm(p.categoria).includes(b) || norm(p.resumo).includes(b))
+  const lista = catAtiva === 'Todas' && !todas && !b ? filtrada.slice(0, 9) : filtrada
   return (
     <section id="colecao" className="relative overflow-hidden bg-laranja">
       <Drift className="pointer-events-none absolute -right-6 top-6 hidden lg:block" from={-30} to={90} rot={[-4, 8]}><Xicara className="h-40" color="#fff" /></Drift>
@@ -306,7 +310,21 @@ function Colecao() {
           <h2 className="titulo !text-indigo text-[clamp(3.25rem,9vw,5.5rem)]">A coleção</h2>
           <p className="script mt-2 !text-tinta text-4xl">tudo é feito sob encomenda, do seu jeito</p>
         </Reveal>
-        <div className="sem-barra -mx-5 mt-10 flex snap-x gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0" role="group" aria-label="Filtrar por tipo">
+        <div className="mx-auto mt-8 max-w-md">
+          <label htmlFor="busca-coleção" className="sr-only">Buscar peça pelo nome</label>
+          <div className="relative">
+            <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 opacity-60" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input
+              id="busca-coleção"
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome, ex.: boleira, xícara…"
+              className="min-h-[48px] w-full rounded-full border-0 bg-white py-2.5 pl-11 pr-4 text-[16px] text-tinta shadow-suave outline-none focus:ring-2 focus:ring-indigo"
+            />
+          </div>
+        </div>
+        <div className="sem-barra -mx-5 mt-6 flex snap-x gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0" role="group" aria-label="Filtrar por tipo">
           {categorias.map((c) => (
             <button
               key={c}
@@ -321,6 +339,9 @@ function Colecao() {
           ))}
         </div>
         {carregando && !produtos.length && <p className="mt-10 text-center text-indigo" role="status">Carregando as peças…</p>}
+        {!carregando && lista.length === 0 && (
+          <p className="mt-10 text-center text-tinta">Nenhuma peça encontrada para “{busca}”. Tente outra palavra ou <button onClick={() => setBusca('')} className="underline">limpe a busca</button>.</p>
+        )}
         <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3">
           {lista.map((p, i) => (
             <Card key={p.slug} p={p} i={i} sobreLaranja />

@@ -1,5 +1,8 @@
 {
-  "rewrites": [{ "source": "/((?!img/|assets/|_vercel/|.*\\..*).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/((?!img/|assets/|_vercel/|.*\\..*).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
