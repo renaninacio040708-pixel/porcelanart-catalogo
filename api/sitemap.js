@@ -2,9 +2,14 @@
 // Sem banco configurado, cai de volta na lista fixa que já vem no código do site.
 const BASE = 'https://porcelanart-catalogo.vercel.app'
 
+// Mesma URL e chave "anon" (pública por definição) já embutidas no site; permite trocar por variável de ambiente na Vercel.
+const URL_PADRAO = 'https://zloosoqszzghmblzvhdm.supabase.co'
+const CHAVE_PADRAO =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpsb29zb3FzenpnaG1ibHp2aGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMjc4MTIsImV4cCI6MjEwNTYwMzgxMn0.YD0odyb_kbdc0pCrqI-99QvFfNb_yuM2-Dn61xXvJxo'
+
 export default async function handler(req, res) {
-  const url = process.env.VITE_SUPABASE_URL
-  const key = process.env.VITE_SUPABASE_ANON_KEY
+  const url = process.env.VITE_SUPABASE_URL || URL_PADRAO
+  const key = process.env.VITE_SUPABASE_ANON_KEY || CHAVE_PADRAO
   let slugs = []
 
   if (url && key) {
