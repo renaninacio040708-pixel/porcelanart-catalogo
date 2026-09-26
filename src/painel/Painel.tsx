@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { STATUS_ROTULO, aPartirDe, foto, type Peca, type Produto, type Status, type Variacao } from '../data'
-import { catalogoAtualComoLinhas, slugDe, store, type NovaPeca, type NovoProduto, type Store } from './store'
+import { baixarBackupJson, baixarCatalogoCsv, catalogoAtualComoLinhas, slugDe, store, type NovaPeca, type NovoProduto, type Store } from './store'
 
 // ================================================================= estilos (feitos para toque: alvos de 44px+, texto de 16px)
 const btn = 'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-medium transition-colors active:scale-[0.98] disabled:opacity-50'
@@ -461,7 +461,16 @@ function Inicio({ s, kits, pecas, ir, recarregar, avisar }: Comum & { kits: Prod
 
   return (
     <div>
-      <h1 className="text-[28px] font-medium leading-tight tracking-[-0.01em]">Início</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-[28px] font-medium leading-tight tracking-[-0.01em]">Início</h1>
+        <button
+          className={btnLinha}
+          title="Baixa uma cópia de tudo (produtos e peças) num arquivo, para guardar fora do site"
+          onClick={() => baixarBackupJson(kits ?? [], pecas ?? [])}
+        >
+          Baixar backup completo
+        </button>
+      </div>
 
       {!passosOcultos && kits && pecas && (
         <section className="mt-5 rounded-xl border-2 border-laranja/50 bg-white p-5" aria-label="Primeiros passos">
@@ -502,7 +511,7 @@ function Inicio({ s, kits, pecas, ir, recarregar, avisar }: Comum & { kits: Prod
 }
 
 // ================================================================= lista de produtos
-type Ordem = 'ordem' | 'nome' | 'status' | 'qualidade'
+type Ordem = 'ordem' | 'nome' | 'status' | 'qualidade' | 'cliques'
 
 function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comum & { kits: Produto[] | null; filtroInicial?: Filtro }) {
   const confirmar = useConfirmar()
@@ -533,7 +542,15 @@ function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comu
     )
     const peso: Record<Status, number> = { ativo: 0, esgotado: 1, oculto: 2 }
     return [...l].sort((x, y) =>
-      ordem === 'nome' ? x.nome.localeCompare(y.nome, 'pt-BR') : ordem === 'status' ? peso[st(x)] - peso[st(y)] : ordem === 'qualidade' ? qualidade(x).faltas.length - qualidade(y).faltas.length : (x.ordem ?? 0) - (y.ordem ?? 0),
+      ordem === 'nome'
+        ? x.nome.localeCompare(y.nome, 'pt-BR')
+        : ordem === 'status'
+          ? peso[st(x)] - peso[st(y)]
+          : ordem === 'qualidade'
+            ? qualidade(x).faltas.length - qualidade(y).faltas.length
+            : ordem === 'cliques'
+              ? (y.cliques ?? 0) - (x.cliques ?? 0)
+              : (x.ordem ?? 0) - (y.ordem ?? 0),
     )
   }, [kits, filtro, busca, cat, ordem])
 
@@ -648,7 +665,10 @@ function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comu
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-medium leading-tight tracking-[-0.01em]">Meus produtos</h1>
-        <button className={btnLaranja} onClick={() => setEditando(novo())}>+ Adicionar novo produto</button>
+        <div className="flex flex-wrap gap-2">
+          <button className={btnLinha} title="Baixa uma planilha (abre no Excel/Sheets) com nome, categoria, preço, situação e cliques" onClick={() => baixarCatalogoCsv(kits ?? [])}>Baixar planilha</button>
+          <button className={btnLaranja} onClick={() => setEditando(novo())}>+ Adicionar novo produto</button>
+        </div>
       </div>
 
       <div className="mt-5 rounded-xl bg-white shadow-suave">
@@ -671,6 +691,7 @@ function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comu
             <option value="nome">Nome (A a Z)</option>
             <option value="status">Vendendo primeiro</option>
             <option value="qualidade">Mais completos primeiro</option>
+            <option value="cliques">Mais pedidos primeiro</option>
           </select>
         </div>
 
@@ -702,6 +723,9 @@ function Produtos({ s, kits, recarregar, avisar, filtroInicial = 'todos' }: Comu
                       <p className="font-medium leading-snug">{k.nome}</p>
                       <p className="text-sm text-tinta-suave">{k.categoria}{k.preco ? ` · ${aPartirDe(k.preco)}` : ''}{k.variacoes?.length ? ` · ${k.variacoes.length} opção(ões) para escolher` : ''}</p>
                       <p className={`mt-0.5 text-sm ${q.ok ? 'text-green-700' : 'text-amber-800'}`}>{q.ok ? '✓ Anúncio completo' : `Falta: ${q.faltas.join(', ')}`}</p>
+                      <p className="mt-0.5 text-sm text-tinta-suave" title="Quantas vezes o cliente tocou em 'Quero personalizar' ou 'Perguntar quando volta'">
+                        💬 {k.cliques ?? 0} pedido{(k.cliques ?? 0) === 1 ? '' : 's'} de orçamento
+                      </p>
                     </div>
                     <SeletorSituacao valor={st(k)} nome={k.nome} compacto aoMudar={(v) => mudarStatus([k.id!], v)} />
                     <div className="flex gap-2">

@@ -41,6 +41,8 @@ export type Produto = {
   ordem?: number
   /** preço base: sempre exibido como "a partir de" (o valor final depende da personalização) */
   preco?: number | null
+  /** quantas vezes o cliente tocou em "Quero personalizar" — só para a mãe ver no painel */
+  cliques?: number
 }
 
 /** peça avulsa do "Montar meu próprio kit" */
@@ -301,7 +303,8 @@ export const foto = (f?: Foto | null) =>
 /** versão pequena (480px) para cards e miniaturas */
 export const fotoP = (f?: Foto | null) => {
   const u = foto(f)
-  return u.startsWith('/img/') && u.endsWith('.webp') ? u.replace('.webp', '-s.webp') : u
+  // toda foto (local ou enviada pelo painel) tem uma versão pequena com o mesmo nome + "-s"
+  return u.endsWith('.webp') ? u.replace(/\.webp$/, '-s.webp') : u
 }
 // galerias enxutas: sem repetição e no máximo 8 fotos por peça
 for (const p of produtos) p.fotos = [...new Set(p.fotos)].slice(0, 8)

@@ -13,6 +13,7 @@ import {
   type Produto,
 } from './data'
 import { useCatalogo } from './catalogo'
+import { store } from './painel/store'
 
 const Painel = lazy(() => import('./painel/Painel'))
 const Montar = lazy(() => import('./Montar'))
@@ -668,7 +669,14 @@ function Peca() {
           {esgotado ? (
             <div className="mt-8 rounded-lg border border-[#b4470a]/40 bg-[#b4470a]/5 p-4">
               <p className="font-medium text-[#8a3606]">Esgotado no momento</p>
-              <a href={linkZap(`Olá! Vi que "${p.nome}" está esgotado. Podem me avisar quando voltar ou sugerir algo parecido?`)} target="_blank" title="Abre em nova aba" rel="noreferrer" className="btn btn-vazado mt-3 w-full sm:w-auto">
+              <a
+                href={linkZap(`Olá! Vi que "${p.nome}" está esgotado. Podem me avisar quando voltar ou sugerir algo parecido?`)}
+                target="_blank"
+                title="Abre em nova aba"
+                rel="noreferrer"
+                onClick={() => p.id && store?.registrarClique(p.id)}
+                className="btn btn-vazado mt-3 w-full sm:w-auto"
+              >
                 <ZapIcon /> Perguntar quando volta
               </a>
             </div>
@@ -677,7 +685,10 @@ function Peca() {
               <a
                 href={faltam.length ? undefined : linkZap(msgProduto(p.nome, escolhas))}
                 aria-disabled={faltam.length > 0}
-                onClick={(e) => faltam.length && e.preventDefault()}
+                onClick={(e) => {
+                  if (faltam.length) return e.preventDefault()
+                  if (p.id) store?.registrarClique(p.id)
+                }}
                 target="_blank"
                 title="Abre em nova aba"
                 rel="noreferrer"

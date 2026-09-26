@@ -26,6 +26,7 @@ create table if not exists public.kits (
   preco numeric(10, 2),          -- preço base opcional (o site mostra "a partir de")
   status text not null default 'ativo' check (status in ('ativo', 'esgotado', 'oculto')),
   ordem int not null default 0,
+  cliques int not null default 0, -- quantas vezes o cliente clicou em "Quero personalizar" (visível no painel)
   criado_em timestamptz not null default now()
 );
 
@@ -67,3 +68,11 @@ create policy "fotos leitura" on storage.objects for select to anon, authenticat
 drop policy if exists "fotos admin" on storage.objects;
 create policy "fotos admin" on storage.objects for all to authenticated
   using (bucket_id = 'fotos' and public.is_admin()) with check (bucket_id = 'fotos' and public.is_admin());
+
+-- 6) Contador de cliques em "Quero personalizar": o site (visitante, sem login) só pode
+-- chamar esta função, que soma 1 — nunca lê nem muda mais nada da peça.
+create or replace function public.registrar_clique_kit(p_id uuid) returns void
+language sql security definer set search_path = public as $$
+  update public.kits set cliques = cliques + 1 where id = p_id;
+$$;
+grant execute on function public.registrar_clique_kit(uuid) to anon, authenticated;

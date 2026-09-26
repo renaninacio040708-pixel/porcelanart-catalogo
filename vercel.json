@@ -1,6 +1,11 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    {
+      "source": "/peca/:slug",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|Pinterest|redditbot).*" }],
+      "destination": "/api/preview?slug=:slug"
+    },
     { "source": "/((?!img/|assets/|_vercel/|.*\\..*).*)", "destination": "/index.html" }
   ],
   "headers": [

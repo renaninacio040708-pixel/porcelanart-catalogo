@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigurado } from '../config'
-import { produtos as estaticos, type Peca, type Produto, type Status } from '../data'
+import { STATUS_ROTULO, produtos as estaticos, type Peca, type Produto, type Status } from '../data'
 
 export type NovoProduto = Omit<Produto, 'id'> & { id?: string }
 export type NovaPeca = Omit<Peca, 'id'> & { id?: string }
@@ -19,6 +19,8 @@ export interface Store {
   salvarPeca(p: NovaPeca): Promise<Peca>
   removerPeca(id: string): Promise<void>
   enviarFoto(arquivo: File): Promise<string>
+  /** soma 1 no contador "cliques" do produto (visitante clicou em "Quero personalizar") */
+  registrarClique(idKit: string): Promise<void>
 }
 
 /** Reduz a foto antes de enviar (máx. 1400px, WebP) para o site ficar leve. */
@@ -118,11 +120,24 @@ const supabaseStore: Store = {
   },
   async enviarFoto(arquivo) {
     const db = await cliente()
-    const blob = await reduzirFoto(arquivo)
-    const caminho = `${crypto.randomUUID()}.webp`
-    const { error } = await db.storage.from('fotos').upload(caminho, blob, { contentType: 'image/webp', cacheControl: '31536000' })
-    if (error) throw new Error('Falha ao enviar a foto: ' + error.message)
-    return db.storage.from('fotos').getPublicUrl(caminho).data.publicUrl
+    const base = crypto.randomUUID()
+    // duas versões: a cheia (mostrada na página da peça) e uma pequena (cartões e miniaturas),
+    // assim o site não faz o celular do cliente baixar uma foto de 1400px só para um quadradinho.
+    const [grande, pequena] = await Promise.all([reduzirFoto(arquivo, 1400), reduzirFoto(arquivo, 480)])
+    const enviar = async (nome: string, blob: Blob) => {
+      const { error } = await db.storage.from('fotos').upload(nome, blob, { contentType: 'image/webp', cacheControl: '31536000' })
+      if (error) throw new Error('Falha ao enviar a foto: ' + error.message)
+    }
+    await enviar(`${base}.webp`, grande)
+    await enviar(`${base}-s.webp`, pequena)
+    return db.storage.from('fotos').getPublicUrl(`${base}.webp`).data.publicUrl
+  },
+  async registrarClique(idKit) {
+    const db = await cliente()
+    // não usa checa()/lança erro: contar clique nunca deve travar o botão do cliente
+    await db.rpc('registrar_clique_kit', { p_id: idKit }).then(({ error }) => {
+      if (error) console.warn('Não foi possível registrar o clique:', error.message)
+    })
   },
 }
 
@@ -192,6 +207,43 @@ const demoStore: Store = {
       r.readAsDataURL(blob)
     })
   },
+  async registrarClique(idKit) {
+    const todos = ler<Produto[]>(K_KITS, [])
+    gravar(K_KITS, todos.map((k) => (k.id === idKit ? { ...k, cliques: (k.cliques ?? 0) + 1 } : k)))
+  },
+}
+
+// ---------------------------------------------------------------- backup / exportar
+const baixar = (conteudo: string, nome: string, tipo: string) => {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([conteudo], { type: tipo }))
+  a.download = nome
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+const dataDeHoje = () => new Date().toISOString().slice(0, 10)
+const csv = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+
+/** Baixa tudo (produtos + peças) num arquivo — cópia de segurança para guardar fora do Supabase. */
+export function baixarBackupJson(kits: Produto[], pecas: Peca[]) {
+  baixar(JSON.stringify({ exportado_em: new Date().toISOString(), kits, pecas }, null, 2), `porcelanart-backup-${dataDeHoje()}.json`, 'application/json')
+}
+
+/** Baixa uma planilha (CSV, abre no Excel/Sheets) só com os produtos, fácil de olhar por fora. */
+export function baixarCatalogoCsv(kits: Produto[]) {
+  const cab = ['Nome', 'Categoria', 'Preço inicial', 'Situação', 'Cliques', 'Fotos', 'Link no site']
+  const linhas = kits.map((k) => [
+    k.nome,
+    k.categoria,
+    k.preco ?? '',
+    STATUS_ROTULO[(k.status ?? 'ativo') as Status],
+    k.cliques ?? 0,
+    k.fotos.length,
+    `https://porcelanart-catalogo.vercel.app/peca/${k.slug}`,
+  ])
+  const texto = [cab, ...linhas].map((l) => l.map(csv).join(';')).join('\r\n')
+  baixar('﻿' + texto, `porcelanart-catalogo-${dataDeHoje()}.csv`, 'text/csv;charset=utf-8')
 }
 
 /** Supabase se estiver configurado; demonstração local só no desenvolvimento (ou com ?demo). */
